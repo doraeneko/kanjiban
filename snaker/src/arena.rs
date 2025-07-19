@@ -2,8 +2,7 @@
 // (C) 2025, part of Kanjiban by JoAn.
 // Game arena.
 
-use rand::prelude::SliceRandom;
-use rand::thread_rng;
+use macroquad::rand;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum CellContent {
@@ -54,9 +53,14 @@ impl Arena {
         );
 
         // Shuffle them
-        indices.shuffle(&mut thread_rng());
+        for idx in 0..indices.len() {
+            let new_idx = (rand::rand() as usize) % indices.len();
+            let buffer = indices[idx];
+            indices[idx] = indices[new_idx];
+            indices[new_idx] = buffer;
+        }
 
-        // Pick the first n indices and set them to Food
+        // Pick the first n indices and set them to food
         for &idx in indices.iter().take(how_much) {
             self.cells[idx] = CellContent::Food;
         }
