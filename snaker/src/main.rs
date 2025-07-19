@@ -1,3 +1,7 @@
+// Snaker
+// (C) 2025, part of Kanjiban by JoAn.
+// Main logic.
+
 use macroquad::prelude::*;
 mod arena;
 mod draw;

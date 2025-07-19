@@ -1,4 +1,7 @@
+// Snaker
+// (C) 2025, part of Kanjiban by JoAn.
 // Game arena.
+
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 

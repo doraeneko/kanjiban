@@ -1,4 +1,6 @@
-// Snake state
+// Snaker
+// (C) 2025, part of Kanjiban by JoAn.
+// Snake abstraction.
 
 use crate::arena::*;
 use std::collections::VecDeque;

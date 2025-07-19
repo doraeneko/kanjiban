@@ -1,3 +1,5 @@
+// Snaker
+// (C) 2025, part of Kanjiban by JoAn.
 // Drawing facilities.
 
 use crate::arena::*;
