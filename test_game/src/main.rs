@@ -15,14 +15,8 @@ struct Block {
     position: Point,
 }
 
-#[macroquad::main("Kanjiban")]
-async fn main() {
-    let mut andi = Player {
-        position: (4, 4),
-        dir: (1, 0),
-    };
-    let mut unmovable_blocks: LinkedList<Block> = LinkedList::new();
-    let mut movable_blocks: LinkedList<Block> = LinkedList::new();
+fn build_level0(unmovable_blocks: &mut LinkedList<Block>, movable_blocks: &mut LinkedList<Block>) {
+    // place none movable blocks
     for i in 0..SQUARES {
         let block = Block {
             position: (0, i),
@@ -52,12 +46,104 @@ async fn main() {
     };
     unmovable_blocks.push_front(block);
     unmovable_blocks.push_front(block2);
+
+    // add movable boxes
    
     let block3 = Block {
         position: (5, 9),
     };
     movable_blocks.push_front(block3);
+}
 
+// check if a block can be moved to next_block_position
+fn is_block_movable(unmovable_blocks: &mut LinkedList<Block>, next_block_position: Point) -> bool {
+    for b in unmovable_blocks {
+        if b.position == next_block_position {
+            // cannot move the block
+            return false;
+        } 
+    }
+    return true;
+}
+
+// render all blocks, player and step counter
+fn draw_game(unmovable_blocks: &mut LinkedList<Block>, 
+             movable_blocks: &mut LinkedList<Block>,
+             andi: &Player,
+             steps: i16) 
+    {
+    clear_background(LIGHTGRAY);
+
+    let game_size = screen_width().min(screen_height());
+    let offset_x = (screen_width() - game_size) / 2. + 10.;
+    let offset_y = (screen_height() - game_size) / 2. + 10.;
+    let sq_size = (screen_height() - offset_y * 2.) / SQUARES as f32;
+
+    draw_rectangle(offset_x, offset_y, game_size - 20., game_size - 20., WHITE);
+
+    for i in 1..SQUARES {
+        draw_line(
+            offset_x,
+            offset_y + sq_size * i as f32,
+            screen_width() - offset_x,
+            offset_y + sq_size * i as f32,
+            2.,
+            LIGHTGRAY,
+        );
+    }
+
+    for i in 1..SQUARES {
+        draw_line(
+            offset_x + sq_size * i as f32,
+            offset_y,
+            offset_x + sq_size * i as f32,
+            screen_height() - offset_y,
+            2.,
+            LIGHTGRAY,
+        );
+    }
+
+    draw_rectangle(
+        offset_x + andi.position.0 as f32 * sq_size,
+        offset_y + andi.position.1 as f32 * sq_size,
+        sq_size,
+        sq_size,
+        DARKGREEN,
+    );
+
+    for b in unmovable_blocks {
+        draw_rectangle(
+            offset_x + b.position.0 as f32 * sq_size,
+            offset_y + b.position.1 as f32 * sq_size,
+            sq_size,
+            sq_size,
+            RED,
+        );
+    }
+
+    for b in movable_blocks {
+        draw_rectangle(
+            offset_x + b.position.0 as f32 * sq_size,
+            offset_y + b.position.1 as f32 * sq_size,
+            sq_size,
+            sq_size,
+            GOLD,
+        );
+    }
+
+    draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);    
+}
+
+#[macroquad::main("Kanjiban")]
+async fn main() {
+
+    let mut andi = Player {
+        position: (4, 4),
+        dir: (1, 0),
+    };
+    let mut unmovable_blocks: LinkedList<Block> = LinkedList::new();
+    let mut movable_blocks: LinkedList<Block> = LinkedList::new();
+    build_level0(&mut unmovable_blocks, &mut movable_blocks);
 
     let mut steps = 0;
     let speed = 0.1;
@@ -84,100 +170,36 @@ async fn main() {
 
             if get_time() - last_update > speed {
                 last_update = get_time();
+                // player likes to move on this tile:
                 let next_position : Point = (andi.position.0 + andi.dir.0, andi.position.1 + andi.dir.1);
                 let mut player_can_move = true;
                 for b in &unmovable_blocks {
                     if b.position == next_position {
-                        // player likes to move on this tile
+                        // the tile is blocked
                         player_can_move = false;
                     }
                 }
                 for b in &mut movable_blocks {
                     // player likes to move on a tile with a movable block
                     if b.position == next_position {
-                        let mut block_movable = true;
+
                         let next_block_position : Point = (b.position.0 + andi.dir.0, b.position.1 + andi.dir.1);
-                        // check if the block can be moved
-                        for b2 in &unmovable_blocks {
-                            if b2.position == next_block_position {
-                                // cannot move the block
-                                block_movable = false;
-                                player_can_move = false;
-                            } 
-                        }
-                        if block_movable == true {
+                        if is_block_movable(&mut unmovable_blocks, next_block_position) {
                             // move the block
                             b.position = next_block_position;
+                        } else {
+                            player_can_move = false;
                         }
                     }
                 }
-                if player_can_move {
+                if player_can_move && next_position != andi.position {
                    andi.position = next_position;
                    steps += 1;
                 }
             }
         }
         if !game_over {
-            clear_background(LIGHTGRAY);
-
-            let game_size = screen_width().min(screen_height());
-            let offset_x = (screen_width() - game_size) / 2. + 10.;
-            let offset_y = (screen_height() - game_size) / 2. + 10.;
-            let sq_size = (screen_height() - offset_y * 2.) / SQUARES as f32;
-
-            draw_rectangle(offset_x, offset_y, game_size - 20., game_size - 20., WHITE);
-
-            for i in 1..SQUARES {
-                draw_line(
-                    offset_x,
-                    offset_y + sq_size * i as f32,
-                    screen_width() - offset_x,
-                    offset_y + sq_size * i as f32,
-                    2.,
-                    LIGHTGRAY,
-                );
-            }
-
-            for i in 1..SQUARES {
-                draw_line(
-                    offset_x + sq_size * i as f32,
-                    offset_y,
-                    offset_x + sq_size * i as f32,
-                    screen_height() - offset_y,
-                    2.,
-                    LIGHTGRAY,
-                );
-            }
-
-            draw_rectangle(
-                offset_x + andi.position.0 as f32 * sq_size,
-                offset_y + andi.position.1 as f32 * sq_size,
-                sq_size,
-                sq_size,
-                DARKGREEN,
-            );
-
-            for b in &unmovable_blocks {
-                draw_rectangle(
-                    offset_x + b.position.0 as f32 * sq_size,
-                    offset_y + b.position.1 as f32 * sq_size,
-                    sq_size,
-                    sq_size,
-                    RED,
-                );
-            }
-
-            for b in &movable_blocks {
-                draw_rectangle(
-                    offset_x + b.position.0 as f32 * sq_size,
-                    offset_y + b.position.1 as f32 * sq_size,
-                    sq_size,
-                    sq_size,
-                    GOLD,
-                );
-            }
-
-            draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
+            draw_game(&mut unmovable_blocks, &mut movable_blocks, &andi, steps);
         } else {
             clear_background(WHITE);
             let text = "Game Over. Press [enter] to play again.";
