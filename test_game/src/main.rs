@@ -12,9 +12,11 @@ struct Player {
 }
 
 // taken from wikipedia
-fn build_level0(unmovable_blocks: &mut LinkedList<Point>, 
-                movable_blocks: &mut LinkedList<Point>,
-                sinks: &mut LinkedList<Point>) {
+fn build_level0(
+    unmovable_blocks: &mut LinkedList<Point>,
+    movable_blocks: &mut LinkedList<Point>,
+    sinks: &mut LinkedList<Point>,
+) {
     // place none movable blocks
     for i in 0..5 {
         unmovable_blocks.push_front((4, i));
@@ -45,24 +47,24 @@ fn build_level0(unmovable_blocks: &mut LinkedList<Point>,
 }
 
 // check if a block can be moved to next_block_position
-fn is_block_movable(unmovable_blocks: &LinkedList<Point>,   
-                    next_block_position: Point) -> bool {
+fn is_block_movable(unmovable_blocks: &LinkedList<Point>, next_block_position: Point) -> bool {
     for b in unmovable_blocks {
         if *b == next_block_position {
             // cannot move the block
             return false;
-        } 
+        }
     }
     return true;
 }
 
 // render all blocks, player and step counter
-fn draw_game(unmovable_blocks: &mut LinkedList<Point>, 
-             movable_blocks: &mut LinkedList<Point>,
-             sinks: &mut LinkedList<Point>,
-             andi: &Player,
-             steps: i16) 
-    {
+fn draw_game(
+    unmovable_blocks: &mut LinkedList<Point>,
+    movable_blocks: &mut LinkedList<Point>,
+    sinks: &mut LinkedList<Point>,
+    andi: &Player,
+    steps: i16,
+) {
     clear_background(LIGHTGRAY);
 
     let game_size = screen_width().min(screen_height());
@@ -132,11 +134,10 @@ fn draw_game(unmovable_blocks: &mut LinkedList<Point>,
         DARKGREEN,
     );
 
-    draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);    
+    draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
 }
 
-fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>,
-                      sinks: &LinkedList<Point>) -> bool {
+fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>, sinks: &LinkedList<Point>) -> bool {
     for s in sinks {
         let mut sink_found = false;
         for b in movable_blocks {
@@ -145,7 +146,7 @@ fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>,
             }
         }
         if !sink_found {
-            return false; 
+            return false;
         }
     }
     return true;
@@ -153,7 +154,6 @@ fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>,
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
-
     let mut andi = Player {
         position: (10, 4),
         dir: (1, 0),
@@ -182,14 +182,15 @@ async fn main() {
                 andi.dir = left;
             } else if is_key_down(KeyCode::Up) {
                 andi.dir = up;
-            } else if is_key_down(KeyCode::Down){
-                andi.dir = down;     
+            } else if is_key_down(KeyCode::Down) {
+                andi.dir = down;
             }
 
             if get_time() - last_update > speed {
                 last_update = get_time();
                 // player likes to move on this tile:
-                let next_position : Point = (andi.position.0 + andi.dir.0, andi.position.1 + andi.dir.1);
+                let next_position: Point =
+                    (andi.position.0 + andi.dir.0, andi.position.1 + andi.dir.1);
                 let mut player_can_move = true;
                 for b in &unmovable_blocks {
                     if *b == next_position {
@@ -198,40 +199,39 @@ async fn main() {
                     }
                 }
 
-                let mut move_the_block = false;
-                for b in &movable_blocks {
-                    // player likes to move on a tile with a movable block
-                    if *b == next_position {
-                        let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
-                        if is_block_movable(&unmovable_blocks, next_block_position) &&
-                           is_block_movable(&movable_blocks, next_block_position)
-                        {
-                            move_the_block = true;
+                if movable_blocks.contains(&next_position) {
+                    let next_block_position =
+                        (next_position.0 + andi.dir.0, next_position.1 + andi.dir.1);
+                    if is_block_movable(&unmovable_blocks, next_block_position)
+                        && is_block_movable(&movable_blocks, next_block_position)
+                    {
+                        //movable_blocks.iter().find(|x: Point | *x == next_position)
+                        for b in &mut movable_blocks {
+                            if *b == next_position {
+                                let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
+                                *b = next_block_position;
+                            }
                         }
-                        else {
-                            player_can_move = false;
-                        }
-                    }
-                }
-
-                if move_the_block {
-                    for b in &mut movable_blocks {
-                        if *b == next_position {
-                            let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
-                            *b = next_block_position;
-                        }
+                    } else {
+                        player_can_move = false;
                     }
                 }
 
                 if player_can_move && next_position != andi.position {
-                   andi.position = next_position;
-                   steps += 1;
-                   game_over = all_boxes_on_sinks(&mut movable_blocks, &mut sinks);
+                    andi.position = next_position;
+                    steps += 1;
+                    game_over = all_boxes_on_sinks(&mut movable_blocks, &mut sinks);
                 }
             }
         }
         if !game_over {
-            draw_game(&mut unmovable_blocks, &mut movable_blocks, &mut sinks,  &andi, steps);
+            draw_game(
+                &mut unmovable_blocks,
+                &mut movable_blocks,
+                &mut sinks,
+                &andi,
+                steps,
+            );
         } else {
             clear_background(WHITE);
             let text = "Game Over. ";
