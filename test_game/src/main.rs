@@ -5,6 +5,7 @@ mod game_state;
 pub use crate::game_state::board::Point;
 pub use crate::game_state::board::SQUARES;
 pub use crate::game_state::board::Player;
+pub use crate::game_state::board::new_level;
 
 mod render;
 pub use crate::render::draw::draw_game;
@@ -76,10 +77,9 @@ async fn main() {
         position: (10, 4),
         dir: (1, 0),
     };
-    let mut unmovable_blocks: LinkedList<Point> = LinkedList::new();
-    let mut movable_blocks: LinkedList<Point> = LinkedList::new();
-    let mut sinks: LinkedList<Point> = LinkedList::new();
-    build_level0(&mut unmovable_blocks, &mut movable_blocks, &mut sinks);
+
+    let mut level = new_level();
+    build_level0(&mut level.unmovable_blocks, &mut level.movable_blocks, &mut level.sinks);
 
     let mut steps = 0;
     let speed = 0.1;
@@ -110,21 +110,21 @@ async fn main() {
                 let next_position: Point =
                     (andi.position.0 + andi.dir.0, andi.position.1 + andi.dir.1);
                 let mut player_can_move = true;
-                for b in &unmovable_blocks {
+                for b in &level.unmovable_blocks {
                     if *b == next_position {
                         // the tile is blocked
                         player_can_move = false;
                     }
                 }
 
-                if movable_blocks.contains(&next_position) {
+                if level.movable_blocks.contains(&next_position) {
                     let next_block_position =
                         (next_position.0 + andi.dir.0, next_position.1 + andi.dir.1);
-                    if is_block_movable(&unmovable_blocks, next_block_position)
-                        && is_block_movable(&movable_blocks, next_block_position)
+                    if is_block_movable(&level.unmovable_blocks, next_block_position)
+                        && is_block_movable(&level.movable_blocks, next_block_position)
                     {
                         //movable_blocks.iter().find(|x: Point | *x == next_position)
-                        for b in &mut movable_blocks {
+                        for b in &mut level.movable_blocks {
                             if *b == next_position {
                                 let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
                                 *b = next_block_position;
@@ -138,15 +138,15 @@ async fn main() {
                 if player_can_move && next_position != andi.position {
                     andi.position = next_position;
                     steps += 1;
-                    game_over = all_boxes_on_sinks(&mut movable_blocks, &mut sinks);
+                    game_over = all_boxes_on_sinks(&mut level.movable_blocks, &mut level.sinks);
                 }
             }
         }
         if !game_over {
             draw_game(
-                &mut unmovable_blocks,
-                &mut movable_blocks,
-                &mut sinks,
+                &mut level.unmovable_blocks,
+                &mut level.movable_blocks,
+                &mut level.sinks,
                 &andi,
                 steps,
             );
