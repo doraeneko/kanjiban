@@ -1,85 +1,100 @@
 pub mod draw {
 
 use macroquad::prelude::*;
-pub use crate::game_state::board::SQUARES;
-pub use crate::game_state::board::Player;
-pub use crate::game_state::board::Level;
+    pub use crate::game_state::board::SQUARES;
+    pub use crate::game_state::board::Player;
+    pub use crate::game_state::board::Level;
 
-// render all blocks, player and step counter
-pub fn draw_game(
-    level: &mut Level,
-    andi: &Player,
-    steps: i16,
-) {
-    clear_background(LIGHTGRAY);
+    // render all blocks, player and step counter
+    pub fn draw_game(
+        level: &mut Level,
+        andi: &Player,
+        steps: i16,
+    ) {
+        clear_background(LIGHTGRAY);
 
-    let game_size = screen_width().min(screen_height());
-    let offset_x = (screen_width() - game_size) / 2. + 10.;
-    let offset_y = (screen_height() - game_size) / 2. + 10.;
-    let sq_size = (screen_height() - offset_y * 2.) / SQUARES as f32;
+        let game_size = screen_width().min(screen_height());
+        let offset_x = (screen_width() - game_size) / 2. + 10.;
+        let offset_y = (screen_height() - game_size) / 2. + 10.;
+        let sq_size = (screen_height() - offset_y * 2.) / SQUARES as f32;
 
-    draw_rectangle(offset_x, offset_y, game_size - 20., game_size - 20., WHITE);
+        draw_rectangle(offset_x, offset_y, game_size - 20., game_size - 20., WHITE);
 
-    for i in 1..SQUARES {
-        draw_line(
-            offset_x,
-            offset_y + sq_size * i as f32,
-            screen_width() - offset_x,
-            offset_y + sq_size * i as f32,
-            2.,
-            LIGHTGRAY,
-        );
-    }
+        for i in 1..SQUARES {
+            draw_line(
+                offset_x,
+                offset_y + sq_size * i as f32,
+                screen_width() - offset_x,
+                offset_y + sq_size * i as f32,
+                2.,
+                LIGHTGRAY,
+            );
+        }
 
-    for i in 1..SQUARES {
-        draw_line(
-            offset_x + sq_size * i as f32,
-            offset_y,
-            offset_x + sq_size * i as f32,
-            screen_height() - offset_y,
-            2.,
-            LIGHTGRAY,
-        );
-    }
+        for i in 1..SQUARES {
+            draw_line(
+                offset_x + sq_size * i as f32,
+                offset_y,
+                offset_x + sq_size * i as f32,
+                screen_height() - offset_y,
+                2.,
+                LIGHTGRAY,
+            );
+        }
 
-    for s in &level.sinks {
+        for s in &level.sinks {
+            draw_rectangle(
+                offset_x + s.0 as f32 * sq_size,
+                offset_y + s.1 as f32 * sq_size,
+                sq_size,
+                sq_size,
+                GREEN,
+            );
+        }
+
+        for b in &level.unmovable_blocks {
+            draw_rectangle(
+                offset_x + b.0 as f32 * sq_size,
+                offset_y + b.1 as f32 * sq_size,
+                sq_size,
+                sq_size,
+                RED,
+            );
+        }
+
+        for b in &level.movable_blocks {
+            draw_rectangle(
+                offset_x + b.0 as f32 * sq_size,
+                offset_y + b.1 as f32 * sq_size,
+                sq_size,
+                sq_size,
+                GOLD,
+            );
+        }
+
         draw_rectangle(
-            offset_x + s.0 as f32 * sq_size,
-            offset_y + s.1 as f32 * sq_size,
+            offset_x + andi.position.0 as f32 * sq_size,
+            offset_y + andi.position.1 as f32 * sq_size,
             sq_size,
             sq_size,
-            GREEN,
+            DARKGREEN,
         );
+
+        draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
     }
 
-    for b in &level.unmovable_blocks {
-        draw_rectangle(
-            offset_x + b.0 as f32 * sq_size,
-            offset_y + b.1 as f32 * sq_size,
-            sq_size,
-            sq_size,
-            RED,
+    pub fn draw_gameover() {
+        clear_background(WHITE);
+        let text = "Game Over. ";
+        let font_size = 30.;
+        let text_size = measure_text(text, None, font_size as _, 1.0);
+
+        draw_text(
+            text,
+            screen_width() / 2. - text_size.width / 2.,
+            screen_height() / 2. + text_size.height / 2.,
+            font_size,
+            DARKGRAY,
         );
     }
-
-    for b in &level.movable_blocks {
-        draw_rectangle(
-            offset_x + b.0 as f32 * sq_size,
-            offset_y + b.1 as f32 * sq_size,
-            sq_size,
-            sq_size,
-            GOLD,
-        );
-    }
-
-    draw_rectangle(
-        offset_x + andi.position.0 as f32 * sq_size,
-        offset_y + andi.position.1 as f32 * sq_size,
-        sq_size,
-        sq_size,
-        DARKGREEN,
-    );
-
-    draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
-}
 }

@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use std::collections::LinkedList;
 
 mod game_state;
 pub use crate::game_state::board::Point;
@@ -8,27 +7,15 @@ pub use crate::game_state::board::Player;
 pub use crate::game_state::board::new_level;
 pub use crate::game_state::board::is_blocked_by_a_wall;
 pub use crate::game_state::board::box_is_blocked;
+pub use crate::game_state::board::all_boxes_on_sinks;
 
 mod render;
 pub use crate::render::draw::draw_game;
-
-fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>, sinks: &LinkedList<Point>) -> bool {
-    for s in sinks {
-        let mut sink_found = false;
-        for b in movable_blocks {
-            if b == s {
-                sink_found = true;
-            }
-        }
-        if !sink_found {
-            return false;
-        }
-    }
-    return true;
-}
+pub use crate::render::draw::draw_gameover;
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
+    // TODO: move to state
     let mut andi = Player {
         position: (10, 4),
         dir: (1, 0),
@@ -36,10 +23,10 @@ async fn main() {
 
     let mut level = new_level();
 
-    let mut steps = 0;
-    let speed = 0.1;
+    let mut steps = 0; // TODO: move to state
+    let speed = 0.1; 
     let mut last_update = get_time();
-    let mut game_over = false;
+    let mut game_over = false; // TODO: move to state
 
     let up = (0, -1);
     let down = (0, 1);
@@ -86,18 +73,7 @@ async fn main() {
                 steps,
             );
         } else {
-            clear_background(WHITE);
-            let text = "Game Over. ";
-            let font_size = 30.;
-            let text_size = measure_text(text, None, font_size as _, 1.0);
-
-            draw_text(
-                text,
-                screen_width() / 2. - text_size.width / 2.,
-                screen_height() / 2. + text_size.height / 2.,
-                font_size,
-                DARKGRAY,
-            );
+            draw_gameover();
         }
         next_frame().await;
     }

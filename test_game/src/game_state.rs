@@ -109,4 +109,20 @@ pub mod board {
         }
         return true;
     }
+
+    // checks if the level is solved
+    pub fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>, sinks: &LinkedList<Point>) -> bool {
+        for s in sinks {
+            let mut sink_found = false;
+            for b in movable_blocks {
+                if b == s {
+                    sink_found = true;
+                }
+            }
+            if !sink_found {
+                return false;
+            }
+        }
+        return true;
+    }
 }
