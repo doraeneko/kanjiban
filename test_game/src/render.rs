@@ -1,16 +1,13 @@
 pub mod draw {
 
 use macroquad::prelude::*;
-use std::collections::LinkedList;
-pub use crate::game_state::board::Point;
 pub use crate::game_state::board::SQUARES;
 pub use crate::game_state::board::Player;
+pub use crate::game_state::board::Level;
 
 // render all blocks, player and step counter
 pub fn draw_game(
-    unmovable_blocks: &mut LinkedList<Point>,
-    movable_blocks: &mut LinkedList<Point>,
-    sinks: &mut LinkedList<Point>,
+    level: &mut Level,
     andi: &Player,
     steps: i16,
 ) {
@@ -45,7 +42,7 @@ pub fn draw_game(
         );
     }
 
-    for s in sinks {
+    for s in &level.sinks {
         draw_rectangle(
             offset_x + s.0 as f32 * sq_size,
             offset_y + s.1 as f32 * sq_size,
@@ -55,7 +52,7 @@ pub fn draw_game(
         );
     }
 
-    for b in unmovable_blocks {
+    for b in &level.unmovable_blocks {
         draw_rectangle(
             offset_x + b.0 as f32 * sq_size,
             offset_y + b.1 as f32 * sq_size,
@@ -65,7 +62,7 @@ pub fn draw_game(
         );
     }
 
-    for b in movable_blocks {
+    for b in &level.movable_blocks {
         draw_rectangle(
             offset_x + b.0 as f32 * sq_size,
             offset_y + b.1 as f32 * sq_size,

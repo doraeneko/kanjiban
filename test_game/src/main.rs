@@ -10,40 +10,6 @@ pub use crate::game_state::board::new_level;
 mod render;
 pub use crate::render::draw::draw_game;
 
-// taken from wikipedia
-fn build_level0(
-    unmovable_blocks: &mut LinkedList<Point>,
-    movable_blocks: &mut LinkedList<Point>,
-    sinks: &mut LinkedList<Point>,
-) {
-    // place none movable blocks
-    for i in 0..5 {
-        unmovable_blocks.push_front((4, i));
-        unmovable_blocks.push_front((12, i));
-    }
-    for i in 4..13 {
-        unmovable_blocks.push_front((i, 0));
-        unmovable_blocks.push_front((i, 5));
-    }
-    for i in 4..7 {
-        unmovable_blocks.push_front((i, 1));
-    }
-    for i in 9..12 {
-        unmovable_blocks.push_front((i, 1));
-    }
-    // add some none-movable blocks in the middle
-    unmovable_blocks.push_front((9, 3));
-    unmovable_blocks.push_front((9, 4));
-    unmovable_blocks.push_front((6, 3));
-
-    // add movable boxes
-    movable_blocks.push_front((10, 2));
-    movable_blocks.push_front((10, 3));
-
-    // add sinks
-    sinks.push_front((8, 4));
-    sinks.push_front((6, 4));
-}
 
 // check if a block can be moved to next_block_position
 fn is_block_movable(unmovable_blocks: &LinkedList<Point>, next_block_position: Point) -> bool {
@@ -79,7 +45,6 @@ async fn main() {
     };
 
     let mut level = new_level();
-    build_level0(&mut level.unmovable_blocks, &mut level.movable_blocks, &mut level.sinks);
 
     let mut steps = 0;
     let speed = 0.1;
@@ -144,9 +109,7 @@ async fn main() {
         }
         if !game_over {
             draw_game(
-                &mut level.unmovable_blocks,
-                &mut level.movable_blocks,
-                &mut level.sinks,
+                &mut level,
                 &andi,
                 steps,
             );
