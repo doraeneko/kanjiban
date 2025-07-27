@@ -63,4 +63,50 @@ pub mod board {
         sinks.push_front((8, 4));
         sinks.push_front((6, 4));
     }
+
+    // next_position: The tile the player likes to move on
+    // true if not blocked by wall
+    pub fn is_blocked_by_a_wall(level: &Level, next_position: &Point) -> bool {
+        for b in &level.unmovable_blocks {
+            if b == next_position {
+                // the tile is blocked
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // checks im next position is a tile with a box and if this box can be moved
+    // FIXME(SRP): also moves box
+    pub fn box_is_blocked(level: &mut Level, andi: &Player, next_position: &Point) -> bool {
+        if level.movable_blocks.contains(&next_position) {
+            let next_block_position =
+                (next_position.0 + andi.dir.0, next_position.1 + andi.dir.1);
+            if is_block_movable(&level.unmovable_blocks, next_block_position)
+                && is_block_movable(&level.movable_blocks, next_block_position)
+            {
+                //movable_blocks.iter().find(|x: Point | *x == next_position)
+                for b in &mut level.movable_blocks {
+                    if b == next_position {
+                        let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
+                        *b = next_block_position; // move the box
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // check if a block can be moved to next_block_position
+    fn is_block_movable(unmovable_blocks: &LinkedList<Point>, next_block_position: Point) -> bool {
+        for b in unmovable_blocks {
+            if *b == next_block_position {
+                // cannot move the block
+                return false;
+            }
+        }
+        return true;
+    }
 }

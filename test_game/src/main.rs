@@ -6,21 +6,11 @@ pub use crate::game_state::board::Point;
 pub use crate::game_state::board::SQUARES;
 pub use crate::game_state::board::Player;
 pub use crate::game_state::board::new_level;
+pub use crate::game_state::board::is_blocked_by_a_wall;
+pub use crate::game_state::board::box_is_blocked;
 
 mod render;
 pub use crate::render::draw::draw_game;
-
-
-// check if a block can be moved to next_block_position
-fn is_block_movable(unmovable_blocks: &LinkedList<Point>, next_block_position: Point) -> bool {
-    for b in unmovable_blocks {
-        if *b == next_block_position {
-            // cannot move the block
-            return false;
-        }
-    }
-    return true;
-}
 
 fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>, sinks: &LinkedList<Point>) -> bool {
     for s in sinks {
@@ -75,29 +65,11 @@ async fn main() {
                 let next_position: Point =
                     (andi.position.0 + andi.dir.0, andi.position.1 + andi.dir.1);
                 let mut player_can_move = true;
-                for b in &level.unmovable_blocks {
-                    if *b == next_position {
-                        // the tile is blocked
-                        player_can_move = false;
-                    }
+                if is_blocked_by_a_wall(&level, &next_position) {
+                    player_can_move = false;
                 }
-
-                if level.movable_blocks.contains(&next_position) {
-                    let next_block_position =
-                        (next_position.0 + andi.dir.0, next_position.1 + andi.dir.1);
-                    if is_block_movable(&level.unmovable_blocks, next_block_position)
-                        && is_block_movable(&level.movable_blocks, next_block_position)
-                    {
-                        //movable_blocks.iter().find(|x: Point | *x == next_position)
-                        for b in &mut level.movable_blocks {
-                            if *b == next_position {
-                                let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
-                                *b = next_block_position;
-                            }
-                        }
-                    } else {
-                        player_can_move = false;
-                    }
+                if box_is_blocked(&mut level, &andi, &next_position) {
+                    player_can_move = false;
                 }
 
                 if player_can_move && next_position != andi.position {
