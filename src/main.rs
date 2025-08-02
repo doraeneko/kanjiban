@@ -5,13 +5,16 @@ mod game_state;
 mod level_loader;
 
 use crate::draw::*;
+use crate::game_state::DrawGameState;
 pub use crate::game_state::GameState;
 pub use crate::game_state::Point;
-use crate::game_state::{DrawGameState, SQUARES};
 use crate::level_loader::LevelLoader;
+extern crate console_error_panic_hook;
+use std::panic;
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
     let levels = vec!["0", "1", "aenigma"];
     let mut current_level = 0;
 
@@ -77,7 +80,6 @@ async fn main() {
         } else {
             graphical_output.draw_gameover();
         }
-        let screen_width = screen_width();
         root_ui().window(hash!(), vec2(game_size + 20., 0.0), vec2(160., 50.), |ui| {
             ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
         });
