@@ -11,7 +11,17 @@ use crate::level_loader::LevelLoader;
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
-    let levels = vec!["0", "1", "aenigma"];
+    let virtual_width = 800.;
+    let virtual_height = 600.;
+
+    // Apply a camera that scales everything
+    set_camera(&Camera2D {
+        target: vec2(virtual_width / 2., virtual_height / 2.),
+        zoom: vec2(2. / virtual_width, 2. / virtual_height),
+        ..Default::default()
+    });
+
+    let levels = vec!["0", "1", "cyclic"];
     let mut current_level = 0;
 
     let initial_loader = LevelLoader::new("levels/level_0.lvl");
@@ -70,13 +80,13 @@ async fn main() {
                 }
             }
         }
-        let game_size = screen_width().min(screen_height()) - 100.0;
+        let game_size = 500.;
         if !game_over {
             graphical_output.draw_board(&game_state, 10., 10., game_size as f32);
         } else {
             graphical_output.draw_gameover();
         }
-        root_ui().window(hash!(), vec2(game_size + 20., 0.0), vec2(160., 50.), |ui| {
+        root_ui().window(hash!(), vec2(game_size + 20., 0.0), vec2(250., 50.), |ui| {
             ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
         });
         next_frame().await;
