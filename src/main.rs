@@ -1,15 +1,22 @@
 use macroquad::prelude::*;
-
+use macroquad::ui::{hash, root_ui};
 mod draw;
 mod game_state;
+mod level_loader;
+
 use crate::draw::*;
-use crate::game_state::DrawGameState;
 pub use crate::game_state::GameState;
 pub use crate::game_state::Point;
+use crate::game_state::{DrawGameState, SQUARES};
+use crate::level_loader::LevelLoader;
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
-    let mut game_state = GameState::build_level0();
+    let levels = vec!["0", "1", "aenigma"];
+    let mut current_level = 0;
+
+    let initial_loader = LevelLoader::new("/home/andreas/projects/kanjiban/levels/level_0.lvl");
+    let mut game_state = initial_loader.parse_level().await; // GameState::build_level0();
     let graphical_output = GameBoard::new().await;
     let speed = 0.1;
     let mut last_update = get_time();
@@ -20,8 +27,18 @@ async fn main() {
     let down = Point { x: 0, y: 1 };
     let right = Point { x: 1, y: 0 };
     let left = Point { x: -1, y: 0 };
+    let mut selected_level = 0;
 
     loop {
+        if current_level != selected_level {
+            let ll = LevelLoader::new(&format!(
+                "{}{}{}",
+                "levels/level_", &levels[selected_level], ".lvl"
+            ));
+            game_state = ll.parse_level().await;
+            current_level = selected_level;
+            game_over = false;
+        }
         if !game_over {
             let mut direction = no_move;
             if is_key_down(KeyCode::Right) {
@@ -54,11 +71,16 @@ async fn main() {
                 }
             }
         }
+        let game_size = screen_width().min(screen_height()) - 100.0;
         if !game_over {
-            graphical_output.draw_board(&game_state);
+            graphical_output.draw_board(&game_state, 10., 10., game_size as f32);
         } else {
             graphical_output.draw_gameover();
         }
+        let screen_width = screen_width();
+        root_ui().window(hash!(), vec2(game_size + 20., 0.0), vec2(160., 50.), |ui| {
+            ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
+        });
         next_frame().await;
     }
 }

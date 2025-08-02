@@ -36,18 +36,37 @@ pub struct GameState {
     pub sinks: LinkedList<Point>,
     andi: Player,
     steps: i16,
+    title: String,
 }
 
 // Graphical outputs should implement this interface
 pub trait DrawGameState {
-    fn draw_board(&self, game_state: &GameState);
+    // draw the board, starting at absolute coordinates offset_x, offset_y, size should be
+    // game_size many pixels.
+    fn draw_board(&self, game_state: &GameState, offset_x: f32, offset_y: f32, game_size: f32);
     fn draw_gameover(&self);
 }
 
 impl GameState {
+    pub fn new() -> Self {
+        Self {
+            width: SQUARES,
+            height: SQUARES,
+            unmovable_blocks: LinkedList::new(),
+            movable_blocks: LinkedList::new(),
+            sinks: LinkedList::new(),
+            andi: Player {
+                position: Point { x: 0, y: 0 },
+                direction: Point { x: 0, y: 0 },
+            },
+            steps: 0,
+            title: String::from(""),
+        }
+    }
+
     // taken from wikipedia
     pub fn build_level0() -> Self {
-        let mut state: GameState = GameState {
+        let mut state = Self {
             width: SQUARES,
             height: SQUARES,
             unmovable_blocks: LinkedList::new(),
@@ -58,6 +77,7 @@ impl GameState {
                 direction: Point { x: 1, y: 0 },
             },
             steps: 0,
+            title: String::from("Level 0"),
         };
 
         // place none movable blocks
@@ -90,6 +110,14 @@ impl GameState {
         return state;
     }
 
+    pub fn set_title(self: &mut Self, title: &str) {
+        self.title = String::from(title);
+    }
+
+    pub fn get_title(self: &Self) -> &str {
+        return &self.title;
+    }
+
     pub fn inc_steps(self: &mut Self) {
         self.steps += 1;
     }
@@ -110,8 +138,8 @@ impl GameState {
         return self.andi.position;
     }
 
-    pub fn set_player_position(self: &mut Self, next_position: Point) {
-        self.andi.position = next_position;
+    pub fn set_player_position(self: &mut Self, position: Point) {
+        self.andi.position = position;
     }
 
     // next_position: The tile the player likes to move on

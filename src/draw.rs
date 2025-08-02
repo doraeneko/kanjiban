@@ -1,6 +1,6 @@
 // kanjiban
 // (C) 2025 by JoAn
-// Drawing game states to the screen.
+// Drawing game states to the screen using a game board.
 
 use crate::game_state::*;
 use macroquad::prelude::*;
@@ -77,16 +77,21 @@ impl GameBoard {
 }
 
 impl DrawGameState for GameBoard {
-    // render all blocks, player and step counter
-    fn draw_board(self: &GameBoard, game_state: &GameState) {
+    fn draw_board(
+        self: &GameBoard,
+        game_state: &GameState,
+        offset_x: f32,
+        offset_y: f32,
+        board_size: f32,
+    ) {
         clear_background(LIGHTGRAY);
 
-        let game_size = screen_width().min(screen_height());
-        let offset_x = (screen_width() - game_size) / 2. + 10.;
-        let offset_y = (screen_height() - game_size) / 2. + 10.;
-        let sq_size = (screen_height() - offset_y * 2.) / SQUARES as f32;
+        // let game_size = screen_width().min(screen_height()) - 50.0;
+        // let offset_x = (screen_width() - game_size) / 2. - 40.;
+        // let offset_y = (screen_height() - game_size) / 2. + 50.;
+        let sq_size = board_size / SQUARES as f32;
 
-        draw_rectangle(offset_x, offset_y, game_size - 20., game_size - 20., WHITE);
+        draw_rectangle(offset_x, offset_y, board_size, board_size, WHITE);
 
         for i in 1..SQUARES {
             draw_line(
@@ -135,15 +140,29 @@ impl DrawGameState for GameBoard {
         }
         draw_point(&game_state.get_player_position(), GameCell::Player);
         let steps = game_state.steps();
-        draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
+        draw_text(
+            format!("Steps: {steps}").as_str(),
+            10.,
+            25. + board_size,
+            20.,
+            DARKGRAY,
+        );
+        draw_text(game_state.get_title(), 10., 50. + board_size, 20., DARKGRAY);
     }
 
     fn draw_gameover(self: &GameBoard) {
         clear_background(WHITE);
-        let text = "Game Over. ";
+        let text = "Game Over. You won!";
         let font_size = 30.;
         let text_size = measure_text(text, None, font_size as _, 1.0);
-
+        let sq_size = screen_height() / SQUARES as f32;
+        self.sprites.draw_sprite(
+            GameCell::Player,
+            screen_width() / 2. - text_size.width / 2. - 70.0,
+            screen_height() / 2. + text_size.height / 2.,
+            sq_size,
+            sq_size,
+        );
         draw_text(
             text,
             screen_width() / 2. - text_size.width / 2.,
