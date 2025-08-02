@@ -1,74 +1,124 @@
-pub mod board {
-    use std::collections::LinkedList;
+// kanjiban
+// (C) 2025 by JoAn
+// Game state structures.
 
-    pub const SQUARES: i16 = 16;
+use std::collections::LinkedList;
 
-    pub type Point = (i16, i16);
+pub const SQUARES: usize = 16;
+use std::ops::Add;
 
-    pub struct Player {
-        pub position: Point,
-        pub dir: Point,
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
     }
+}
+pub struct Player {
+    pub position: Point,
+    pub direction: Point,
+}
 
-    pub struct Level {
-        pub unmovable_blocks: LinkedList<Point>,
-        pub movable_blocks: LinkedList<Point>,
-        pub sinks: LinkedList<Point>,
-    }
+pub struct GameState {
+    pub width: usize,
+    pub height: usize,
+    pub unmovable_blocks: LinkedList<Point>,
+    pub movable_blocks: LinkedList<Point>,
+    pub sinks: LinkedList<Point>,
+    andi: Player,
+    steps: i16,
+}
 
-    pub fn new_level() -> Level {
-        let mut level = Level {
+// Graphical outputs should implement this interface
+pub trait DrawGameState {
+    fn draw_board(&self, game_state: &GameState);
+    fn draw_gameover(&self);
+}
+
+impl GameState {
+    // taken from wikipedia
+    pub fn build_level0() -> Self {
+        let mut state: GameState = GameState {
+            width: SQUARES,
+            height: SQUARES,
             unmovable_blocks: LinkedList::new(),
             movable_blocks: LinkedList::new(),
             sinks: LinkedList::new(),
+            andi: Player {
+                position: Point { x: 10, y: 4 },
+                direction: Point { x: 1, y: 0 },
+            },
+            steps: 0,
         };
-        build_level0(&mut level.unmovable_blocks, 
-                     &mut level.movable_blocks, 
-                     &mut level.sinks);
 
-        return level;
-    }
-
-    // taken from wikipedia
-    fn build_level0(
-        unmovable_blocks: &mut LinkedList<Point>,
-        movable_blocks: &mut LinkedList<Point>,
-        sinks: &mut LinkedList<Point>,
-    ) {
         // place none movable blocks
         for i in 0..5 {
-            unmovable_blocks.push_front((4, i));
-            unmovable_blocks.push_front((12, i));
+            state.unmovable_blocks.push_front(Point { x: 4, y: i });
+            state.unmovable_blocks.push_front(Point { x: 12, y: i });
         }
         for i in 4..13 {
-            unmovable_blocks.push_front((i, 0));
-            unmovable_blocks.push_front((i, 5));
+            state.unmovable_blocks.push_front(Point { x: i, y: 0 });
+            state.unmovable_blocks.push_front(Point { x: i, y: 5 });
         }
         for i in 4..7 {
-            unmovable_blocks.push_front((i, 1));
+            state.unmovable_blocks.push_front(Point { x: i, y: 1 });
         }
         for i in 9..12 {
-            unmovable_blocks.push_front((i, 1));
+            state.unmovable_blocks.push_front(Point { x: i, y: 1 });
         }
         // add some none-movable blocks in the middle
-        unmovable_blocks.push_front((9, 3));
-        unmovable_blocks.push_front((9, 4));
-        unmovable_blocks.push_front((6, 3));
+        state.unmovable_blocks.push_front(Point { x: 9, y: 3 });
+        state.unmovable_blocks.push_front(Point { x: 9, y: 4 });
+        state.unmovable_blocks.push_front(Point { x: 6, y: 3 });
 
         // add movable boxes
-        movable_blocks.push_front((10, 2));
-        movable_blocks.push_front((10, 3));
+        state.movable_blocks.push_front(Point { x: 10, y: 2 });
+        state.movable_blocks.push_front(Point { x: 10, y: 3 });
 
         // add sinks
-        sinks.push_front((8, 4));
-        sinks.push_front((6, 4));
+        state.sinks.push_front(Point { x: 8, y: 4 });
+        state.sinks.push_front(Point { x: 6, y: 4 });
+        return state;
+    }
+
+    pub fn inc_steps(self: &mut Self) {
+        self.steps += 1;
+    }
+
+    pub fn steps(self: &Self) -> i16 {
+        return self.steps;
+    }
+
+    pub fn set_direction(self: &mut Self, direction: Point) {
+        self.andi.direction = direction;
+    }
+
+    pub fn get_direction(self: &Self) -> Point {
+        return self.andi.direction;
+    }
+
+    pub fn get_player_position(self: &Self) -> Point {
+        return self.andi.position;
+    }
+
+    pub fn set_player_position(self: &mut Self, next_position: Point) {
+        self.andi.position = next_position;
     }
 
     // next_position: The tile the player likes to move on
     // true if not blocked by wall
-    pub fn is_blocked_by_a_wall(level: &Level, next_position: &Point) -> bool {
-        for b in &level.unmovable_blocks {
-            if b == next_position {
+    pub fn is_blocked_by_a_wall(self: &Self, next_position: &Point) -> bool {
+        for b in &self.unmovable_blocks {
+            if *b == *next_position {
                 // the tile is blocked
                 return true;
             }
@@ -76,19 +126,22 @@ pub mod board {
         return false;
     }
 
-    // checks im next position is a tile with a box and if this box can be moved
+    // checks if next position is a tile with a box and if this box can be moved
     // FIXME(SRP): also moves box
-    pub fn box_is_blocked(level: &mut Level, andi: &Player, next_position: &Point) -> bool {
-        if level.movable_blocks.contains(&next_position) {
-            let next_block_position =
-                (next_position.0 + andi.dir.0, next_position.1 + andi.dir.1);
-            if is_block_movable(&level.unmovable_blocks, next_block_position)
-                && is_block_movable(&level.movable_blocks, next_block_position)
-            {
+    pub fn box_is_blocked(self: &mut GameState, next_position: &Point) -> bool {
+        if self.movable_blocks.contains(&next_position) {
+            let next_block_position = Point {
+                x: next_position.x + self.andi.direction.x,
+                y: next_position.y + self.andi.direction.y,
+            };
+            if self.is_block_movable(next_block_position) {
                 //movable_blocks.iter().find(|x: Point | *x == next_position)
-                for b in &mut level.movable_blocks {
-                    if b == next_position {
-                        let next_block_position = (b.0 + andi.dir.0, b.1 + andi.dir.1);
+                for b in &mut self.movable_blocks {
+                    if *b == *next_position {
+                        let next_block_position = Point {
+                            x: b.x + self.andi.direction.x,
+                            y: b.y + self.andi.direction.y,
+                        };
                         *b = next_block_position; // move the box
                     }
                 }
@@ -100,22 +153,18 @@ pub mod board {
     }
 
     // check if a block can be moved to next_block_position
-    fn is_block_movable(unmovable_blocks: &LinkedList<Point>, next_block_position: Point) -> bool {
-        for b in unmovable_blocks {
-            if *b == next_block_position {
-                // cannot move the block
-                return false;
-            }
-        }
-        return true;
+    fn is_block_movable(self: &Self, next_block_position: Point) -> bool {
+        let block_contained = |b: &Point| *b == next_block_position;
+        !self.unmovable_blocks.iter().any(block_contained)
+            && !self.movable_blocks.iter().any(block_contained)
     }
 
     // checks if the level is solved
-    pub fn all_boxes_on_sinks(movable_blocks: &LinkedList<Point>, sinks: &LinkedList<Point>) -> bool {
-        for s in sinks {
+    pub fn all_boxes_on_sinks(self: &Self) -> bool {
+        for s in &self.sinks {
             let mut sink_found = false;
-            for b in movable_blocks {
-                if b == s {
+            for b in &self.movable_blocks {
+                if *b == *s {
                     sink_found = true;
                 }
             }
