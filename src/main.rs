@@ -10,7 +10,7 @@ pub use crate::game_state::Point;
 #[macroquad::main("Kanjiban")]
 async fn main() {
     let mut game_state = GameState::build_level0();
-    let graphical_output = GameBoard::new(game_state.width, game_state.height);
+    let graphical_output = GameBoard::new().await;
     let speed = 0.1;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state

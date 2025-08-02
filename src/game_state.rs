@@ -159,6 +159,10 @@ impl GameState {
             && !self.movable_blocks.iter().any(block_contained)
     }
 
+    pub fn is_target(self: &Self, position: &Point) -> bool {
+        return self.sinks.contains(&position);
+    }
+
     // checks if the level is solved
     pub fn all_boxes_on_sinks(self: &Self) -> bool {
         for s in &self.sinks {

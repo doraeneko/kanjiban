@@ -4,50 +4,74 @@
 
 use crate::game_state::*;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+const SPRITES_DIR: &str = "assets/sprites/";
+const PLAYER_SPRITE: &str = "player.png";
+const BOX_SPRITE: &str = "box.png";
+const UNMOVABLE_SPRITE: &str = "silver_plate.png";
+const SINK_SPRITE: &str = "target_plate.png";
+const SINK_WITH_BOX_SPRITE: &str = "saved_box.png";
+const EMPTY_SPRITE: &str = "empty.png";
+
+#[derive(Hash, Clone, Copy, PartialEq, Eq)]
 pub enum GameCell {
     Empty,
+    Box,
     Player,
-    Unmovable,
-    Movable,
     Sink,
+    SinkWithBox,
+    Unmovable,
+}
+
+pub struct SpriteManager {
+    sprites: HashMap<GameCell, Texture2D>,
+}
+
+impl SpriteManager {
+    pub async fn new() -> SpriteManager {
+        let mut result = SpriteManager {
+            sprites: HashMap::new(),
+        };
+        let sprite_info: [(&str, GameCell); 6] = [
+            (EMPTY_SPRITE, GameCell::Empty),
+            (BOX_SPRITE, GameCell::Box),
+            (PLAYER_SPRITE, GameCell::Player),
+            (UNMOVABLE_SPRITE, GameCell::Unmovable),
+            (SINK_SPRITE, GameCell::Sink),
+            (SINK_WITH_BOX_SPRITE, GameCell::SinkWithBox),
+        ];
+        for (sprite_path, cell_element) in sprite_info {
+            let texture = load_texture(&[SPRITES_DIR, sprite_path].concat())
+                .await
+                .unwrap();
+            result.sprites.insert(cell_element, texture);
+        }
+        return result;
+    }
+
+    pub fn draw_sprite(self: &Self, kind: GameCell, x: f32, y: f32, size_x: f32, size_y: f32) {
+        draw_texture_ex(
+            &self.sprites[&kind],
+            x,
+            y,
+            WHITE, // tint color
+            DrawTextureParams {
+                dest_size: Some(vec2(size_x, size_y)),
+                ..Default::default()
+            },
+        );
+    }
 }
 
 pub struct GameBoard {
-    pub width: usize,
-    pub height: usize,
-    cells: Vec<GameCell>,
+    sprites: SpriteManager,
 }
 
 impl GameBoard {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub async fn new() -> Self {
         Self {
-            width,
-            height,
-            cells: vec![GameCell::Empty; width * height],
-        }
-    }
-
-    pub fn set(&mut self, pos: &Point, value: GameCell) {
-        if pos.x >= 0
-            && pos.y >= 0
-            && (pos.x as usize) < self.width
-            && (pos.y as usize) < self.height
-        {
-            self.cells[(pos.x as usize) * self.width + (pos.y as usize)] = value;
-        }
-    }
-
-    pub fn get(&self, pos: &Point) -> GameCell {
-        if (pos.x >= 0)
-            && (pos.y >= 0)
-            && (pos.x as usize) < self.width
-            && (pos.y as usize) < self.height
-        {
-            self.cells[(pos.x as usize) * self.width + (pos.y as usize)]
-        } else {
-            GameCell::Empty
+            sprites: SpriteManager::new().await,
         }
     }
 }
@@ -86,43 +110,30 @@ impl DrawGameState for GameBoard {
             );
         }
 
+        let draw_point = |p: &Point, kind: GameCell| {
+            self.sprites.draw_sprite(
+                kind,
+                offset_x + p.x as f32 * sq_size,
+                offset_y + p.y as f32 * sq_size,
+                sq_size,
+                sq_size,
+            )
+        };
+
         for s in &game_state.sinks {
-            draw_rectangle(
-                offset_x + s.x as f32 * sq_size,
-                offset_y + s.y as f32 * sq_size,
-                sq_size,
-                sq_size,
-                GREEN,
-            );
+            draw_point(s, GameCell::Sink);
         }
-
         for b in &game_state.unmovable_blocks {
-            draw_rectangle(
-                offset_x + b.x as f32 * sq_size,
-                offset_y + b.y as f32 * sq_size,
-                sq_size,
-                sq_size,
-                RED,
-            );
+            draw_point(b, GameCell::Unmovable);
         }
-
         for b in &game_state.movable_blocks {
-            draw_rectangle(
-                offset_x + b.x as f32 * sq_size,
-                offset_y + b.y as f32 * sq_size,
-                sq_size,
-                sq_size,
-                GOLD,
-            );
+            if game_state.is_target(b) {
+                draw_point(b, GameCell::SinkWithBox);
+            } else {
+                draw_point(b, GameCell::Box);
+            }
         }
-
-        draw_rectangle(
-            offset_x + game_state.get_player_position().x as f32 * sq_size,
-            offset_y + game_state.get_player_position().y as f32 * sq_size,
-            sq_size,
-            sq_size,
-            DARKGREEN,
-        );
+        draw_point(&game_state.get_player_position(), GameCell::Player);
         let steps = game_state.steps();
         draw_text(format!("Steps: {steps}").as_str(), 10., 20., 20., DARKGRAY);
     }
