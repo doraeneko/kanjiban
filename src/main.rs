@@ -6,8 +6,7 @@ mod level_loader;
 
 use crate::draw::*;
 use crate::game_state::DrawGameState;
-pub use crate::game_state::GameState;
-pub use crate::game_state::Point;
+use crate::game_state::Point;
 use crate::level_loader::LevelLoader;
 
 #[macroquad::main("Kanjiban")]
@@ -15,7 +14,7 @@ async fn main() {
     let levels = vec!["0", "1", "aenigma"];
     let mut current_level = 0;
 
-    let initial_loader = LevelLoader::new("/home/andreas/projects/kanjiban/levels/level_0.lvl");
+    let initial_loader = LevelLoader::new("levels/level_0.lvl");
     let mut game_state = initial_loader.parse_level().await; // GameState::build_level0();
     let graphical_output = GameBoard::new().await;
     let speed = 0.1;
