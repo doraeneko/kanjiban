@@ -9,12 +9,9 @@ use crate::game_state::DrawGameState;
 pub use crate::game_state::GameState;
 pub use crate::game_state::Point;
 use crate::level_loader::LevelLoader;
-extern crate console_error_panic_hook;
-use std::panic;
 
 #[macroquad::main("Kanjiban")]
 async fn main() {
-    panic::set_hook(Box::new(console_error_panic_hook::hook));
     let levels = vec!["0", "1", "aenigma"];
     let mut current_level = 0;
 
