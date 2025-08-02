@@ -29,10 +29,12 @@ jobs:
         run: |
           mkdir dist
           mkdir dist/assets
+          mkdir dist/levels
           # Copy the wasm binary
           cp target/wasm32-unknown-unknown/release/kanjiban.wasm ./dist/
           # Copy static files (index.html, JS glue, textures, etc.)
           cp -r assets/* ./dist/assets/
+          cp -r levels/* ./dist/levels/
           cp -r web/* ./dist
           touch ./dist/.nojekyll
 
