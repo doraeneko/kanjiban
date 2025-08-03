@@ -3,6 +3,7 @@
 // Combo box functionality. Macroquad's combobox scales poorly.
 // Chatgpt helped a bit here. But it was necessary to adapt to the camera position.
 
+use crate::macroquad_helpers::get_adjusted_mouse_position;
 use macroquad::prelude::*;
 
 pub struct ComboBox<'a> {
@@ -30,12 +31,6 @@ impl<'a> ComboBox<'a> {
         }
     }
 
-    fn get_adjusted_mouse_position(&self) -> Vec2 {
-        let mouse_screen = mouse_position();
-        let mouse_screen_vec2 = Vec2::new(mouse_screen.0, mouse_screen.1);
-        self.camera.screen_to_world(mouse_screen_vec2)
-    }
-
     pub fn draw(&self) {
         // Draw the main box
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, DARKGRAY);
@@ -54,7 +49,7 @@ impl<'a> ComboBox<'a> {
             WHITE,
         );
 
-        let mouse_world = self.get_adjusted_mouse_position();
+        let mouse_world = get_adjusted_mouse_position(&self.camera);
 
         // If open, draw the dropdown items below
         if self.is_open {
@@ -75,7 +70,7 @@ impl<'a> ComboBox<'a> {
     }
 
     pub fn update(&mut self) -> Option<usize> {
-        let mouse_pos = self.get_adjusted_mouse_position();
+        let mouse_pos = get_adjusted_mouse_position(&self.camera);
 
         if is_mouse_button_pressed(MouseButton::Left) {
             let mouse_pt = Vec2::new(mouse_pos.x, mouse_pos.y);
