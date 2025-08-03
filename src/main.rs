@@ -1,31 +1,36 @@
 use macroquad::prelude::*;
-use macroquad::ui::{Skin, hash, root_ui};
-mod draw;
+mod combo_box;
+mod game_board;
 mod game_state;
 mod level_loader;
-
-use crate::draw::*;
-use crate::game_state::DrawGameState;
-use crate::game_state::Point;
+use crate::combo_box::ComboBox;
+use crate::game_board::*;
+use crate::game_state::{GameState, Point};
 use crate::level_loader::LevelLoader;
 
+// const levels: Vec<&'static str> = vec!["0", "1", "gil1", "thinking_rabbit_1"];
+static LEVELS: &'static [&'static str] = &["0", "1", "gil1", "thinking_rabbit_1"];
+
+async fn load_level(level_prefix: &str) -> GameState {
+    let ll = LevelLoader::new(&format!("{}{}{}", "levels/level_", level_prefix, ".lvl"));
+    ll.parse_level().await
+}
 #[macroquad::main("Kanjiban")]
 async fn main() {
     let virtual_width = 800.;
     let virtual_height = 600.;
 
     // Apply a camera that scales everything
-    set_camera(&Camera2D {
+    let camera = Camera2D {
         target: vec2(virtual_width / 2., virtual_height / 2.),
         zoom: vec2(2. / virtual_width, 2. / virtual_height),
         ..Default::default()
-    });
+    };
+    set_camera(&camera);
 
-    let mut current_level = 0;
-
-    let initial_loader = LevelLoader::new("levels/level_0.lvl");
-    let mut game_state = initial_loader.parse_level().await; // GameState::build_level0();
-    let graphical_output = GameBoard::new().await;
+    let mut game_state = load_level("0").await;
+    let game_board = GameBoard::new(10., 10., 500.).await;
+    let mut combo = ComboBox::new(&camera, 500. + 20.0, 20., 200.0, &LEVELS);
     let speed = 0.1;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
@@ -35,18 +40,10 @@ async fn main() {
     let down = Point { x: 0, y: 1 };
     let right = Point { x: 1, y: 0 };
     let left = Point { x: -1, y: 0 };
-    let mut selected_level = 0;
-    let levels = vec!["0", "1", "gil1"];
-    let ui_scale = screen_width() / 800.0; // Base resolution: 800px wide
 
     loop {
-        if current_level != selected_level {
-            let ll = LevelLoader::new(&format!(
-                "{}{}{}",
-                "levels/level_", &levels[selected_level], ".lvl"
-            ));
-            game_state = ll.parse_level().await;
-            current_level = selected_level;
+        if let Some(selected) = combo.update() {
+            game_state = load_level(&LEVELS[selected]).await;
             game_over = false;
         }
         if !game_over {
@@ -81,20 +78,13 @@ async fn main() {
                 }
             }
         }
-        let game_size = 500.;
         if !game_over {
-            graphical_output.draw_board(&game_state, 10., 10., game_size as f32);
+            game_board.draw_board(&game_state);
         } else {
-            graphical_output.draw_gameover();
+            game_board.draw_win(&game_state);
         }
-        root_ui().window(
-            hash!(),
-            vec2((game_size + 20.) * ui_scale + 20., ui_scale * 10.0),
-            vec2(ui_scale * 250., ui_scale * 50.),
-            |ui| {
-                ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
-            },
-        );
+        combo.draw();
+
         next_frame().await;
     }
 }

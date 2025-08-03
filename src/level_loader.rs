@@ -27,6 +27,7 @@ impl LevelLoader {
     }
 
     pub async fn parse_level(self: &Self) -> GameState {
+        // TODO: better error handling
         let contents = load_string(&self.level_path).await.unwrap();
 
         let mut current_line_idx = 0;
@@ -70,8 +71,10 @@ impl LevelLoader {
                             _ => {} // floor
                         }
                         x_pos += 1;
+                        result.width = result.width.max(x_pos as u16);
                     }
                     y_pos += 1;
+                    result.height = result.height.max(y_pos as u16);
                     x_pos = 0;
                 }
                 ParseState::ReadGameBoard => {

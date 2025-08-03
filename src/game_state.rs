@@ -29,8 +29,8 @@ pub struct Player {
 }
 
 pub struct GameState {
-    pub width: usize,
-    pub height: usize,
+    pub width: u16,
+    pub height: u16,
     pub unmovable_blocks: LinkedList<Point>,
     pub movable_blocks: LinkedList<Point>,
     pub sinks: LinkedList<Point>,
@@ -39,19 +39,11 @@ pub struct GameState {
     title: String,
 }
 
-// Graphical outputs should implement this interface
-pub trait DrawGameState {
-    // draw the board, starting at absolute coordinates offset_x, offset_y, size should be
-    // game_size many pixels.
-    fn draw_board(&self, game_state: &GameState, offset_x: f32, offset_y: f32, game_size: f32);
-    fn draw_gameover(&self);
-}
-
 impl GameState {
     pub fn new() -> Self {
         Self {
-            width: SQUARES,
-            height: SQUARES,
+            width: 0,
+            height: 0,
             unmovable_blocks: LinkedList::new(),
             movable_blocks: LinkedList::new(),
             sinks: LinkedList::new(),
@@ -62,52 +54,6 @@ impl GameState {
             steps: 0,
             title: String::from(""),
         }
-    }
-
-    // taken from wikipedia
-    pub fn build_level0() -> Self {
-        let mut state = Self {
-            width: SQUARES,
-            height: SQUARES,
-            unmovable_blocks: LinkedList::new(),
-            movable_blocks: LinkedList::new(),
-            sinks: LinkedList::new(),
-            andi: Player {
-                position: Point { x: 10, y: 4 },
-                direction: Point { x: 1, y: 0 },
-            },
-            steps: 0,
-            title: String::from("Level 0"),
-        };
-
-        // place none movable blocks
-        for i in 0..5 {
-            state.unmovable_blocks.push_front(Point { x: 4, y: i });
-            state.unmovable_blocks.push_front(Point { x: 12, y: i });
-        }
-        for i in 4..13 {
-            state.unmovable_blocks.push_front(Point { x: i, y: 0 });
-            state.unmovable_blocks.push_front(Point { x: i, y: 5 });
-        }
-        for i in 4..7 {
-            state.unmovable_blocks.push_front(Point { x: i, y: 1 });
-        }
-        for i in 9..12 {
-            state.unmovable_blocks.push_front(Point { x: i, y: 1 });
-        }
-        // add some none-movable blocks in the middle
-        state.unmovable_blocks.push_front(Point { x: 9, y: 3 });
-        state.unmovable_blocks.push_front(Point { x: 9, y: 4 });
-        state.unmovable_blocks.push_front(Point { x: 6, y: 3 });
-
-        // add movable boxes
-        state.movable_blocks.push_front(Point { x: 10, y: 2 });
-        state.movable_blocks.push_front(Point { x: 10, y: 3 });
-
-        // add sinks
-        state.sinks.push_front(Point { x: 8, y: 4 });
-        state.sinks.push_front(Point { x: 6, y: 4 });
-        return state;
     }
 
     pub fn set_title(self: &mut Self, title: &str) {

@@ -66,65 +66,56 @@ impl SpriteManager {
 
 pub struct GameBoard {
     sprites: SpriteManager,
+    top_x: f32,
+    top_y: f32,
+    board_size: f32,
 }
 
 impl GameBoard {
-    pub async fn new() -> Self {
+    pub async fn new(top_x: f32, top_y: f32, board_size: f32) -> Self {
         Self {
             sprites: SpriteManager::new().await,
+            top_x: top_x,
+            top_y: top_y,
+            board_size: board_size,
         }
     }
 }
 
-impl DrawGameState for GameBoard {
-    fn draw_board(
-        self: &GameBoard,
-        game_state: &GameState,
-        offset_x: f32,
-        offset_y: f32,
-        board_size: f32,
-    ) {
+impl GameBoard {
+    pub fn draw_board(self: &GameBoard, game_state: &GameState) {
         clear_background(LIGHTGRAY);
 
-        // let game_size = screen_width().min(screen_height()) - 50.0;
-        // let offset_x = (screen_width() - game_size) / 2. - 40.;
-        // let offset_y = (screen_height() - game_size) / 2. + 50.;
-        let sq_size = board_size / SQUARES as f32;
+        let sq_size = (self.board_size) / (game_state.height.max(game_state.width) as f32);
 
-        draw_rectangle(offset_x, offset_y, board_size, board_size, WHITE);
-
-        for i in 1..SQUARES {
-            draw_line(
-                offset_x,
-                offset_y + sq_size * i as f32,
-                screen_width() - offset_x,
-                offset_y + sq_size * i as f32,
-                2.,
-                LIGHTGRAY,
-            );
-        }
-
-        for i in 1..SQUARES {
-            draw_line(
-                offset_x + sq_size * i as f32,
-                offset_y,
-                offset_x + sq_size * i as f32,
-                screen_height() - offset_y,
-                2.,
-                LIGHTGRAY,
-            );
-        }
+        draw_rectangle(
+            self.top_x,
+            self.top_y,
+            self.board_size,
+            self.board_size,
+            WHITE,
+        );
 
         let draw_point = |p: &Point, kind: GameCell| {
             self.sprites.draw_sprite(
                 kind,
-                offset_x + p.x as f32 * sq_size,
-                offset_y + p.y as f32 * sq_size,
+                self.top_x + p.x as f32 * sq_size,
+                self.top_y + p.y as f32 * sq_size,
                 sq_size,
                 sq_size,
             )
         };
-
+        for x in 0..game_state.width {
+            for y in 0..game_state.height {
+                draw_point(
+                    &Point {
+                        x: x as i32,
+                        y: y as i32,
+                    },
+                    GameCell::Empty,
+                );
+            }
+        }
         for s in &game_state.sinks {
             draw_point(s, GameCell::Sink);
         }
@@ -143,16 +134,24 @@ impl DrawGameState for GameBoard {
         draw_text(
             format!("Steps: {steps}").as_str(),
             10.,
-            25. + board_size,
+            25. + self.board_size,
             20.,
             DARKGRAY,
         );
-        draw_text(game_state.get_title(), 10., 50. + board_size, 20., DARKGRAY);
+        let mut line_chunks = game_state.get_title().chars().collect::<Vec<_>>(); // collect to vector of chars
+        let title_lines = line_chunks.chunks(80);
+        let mut text_height = 50. + self.board_size;
+        for line in title_lines {
+            let output: String = line.iter().collect();
+            draw_text(&output, 10., text_height, 20., DARKGRAY);
+            text_height += 25.;
+        }
     }
 
-    fn draw_gameover(self: &GameBoard) {
+    pub fn draw_win(self: &GameBoard, game_state: &GameState) {
+        self.draw_board(game_state);
         clear_background(WHITE);
-        let text = "Game Over. You won!";
+        let text = "You won!";
         let font_size = 30.;
         let text_size = measure_text(text, None, font_size as _, 1.0);
         let sq_size = screen_height() / SQUARES as f32;
