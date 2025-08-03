@@ -1,6 +1,7 @@
 // kanjiban
 // (C) 2025 by JoAn
 // Pad with direction keys for phone usage.
+// Chatgpt helped with this component a lot. We combined its logic with the keyboard inputs.
 
 use crate::game_state::Point;
 use crate::macroquad_helpers::get_adjusted_mouse_position;
