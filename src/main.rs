@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use macroquad::ui::{hash, root_ui};
+use macroquad::ui::{Skin, hash, root_ui};
 mod draw;
 mod game_state;
 mod level_loader;
@@ -21,7 +21,6 @@ async fn main() {
         ..Default::default()
     });
 
-    let levels = vec!["0", "1", "cyclic"];
     let mut current_level = 0;
 
     let initial_loader = LevelLoader::new("levels/level_0.lvl");
@@ -37,6 +36,8 @@ async fn main() {
     let right = Point { x: 1, y: 0 };
     let left = Point { x: -1, y: 0 };
     let mut selected_level = 0;
+    let levels = vec!["0", "1", "gil1"];
+    let ui_scale = screen_width() / 800.0; // Base resolution: 800px wide
 
     loop {
         if current_level != selected_level {
@@ -86,9 +87,14 @@ async fn main() {
         } else {
             graphical_output.draw_gameover();
         }
-        root_ui().window(hash!(), vec2(game_size + 20., 0.0), vec2(250., 50.), |ui| {
-            ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
-        });
+        root_ui().window(
+            hash!(),
+            vec2((game_size + 20.) * ui_scale + 20., ui_scale * 10.0),
+            vec2(ui_scale * 250., ui_scale * 50.),
+            |ui| {
+                ui.combo_box(hash!(), "Level", &levels, &mut selected_level);
+            },
+        );
         next_frame().await;
     }
 }
