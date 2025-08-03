@@ -24,6 +24,10 @@
             display: block;
         }
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
 </head>
 
 <body>
@@ -37,22 +41,28 @@
 
 
         function resizeCanvas() {
-            const aspect = 9 / 16;
+            const aspect = 9 / 16; // Portrait mode
             let width = window.innerWidth;
             let height = window.innerHeight;
 
             if (width / height > aspect) {
-                // Window is too wide → limit by height
                 width = height * aspect;
             } else {
-                // Window is too tall → limit by width
                 height = width / aspect;
             }
 
-            my_canvas.width = width;
-            my_canvas.height = height;
+            // Handle device pixel ratio for crisp rendering
+            const dpr = window.devicePixelRatio || 1;
+            my_canvas.width = width * dpr;
+            my_canvas.height = height * dpr;
             my_canvas.style.width = width + "px";
             my_canvas.style.height = height + "px";
+
+            // Scale WebGL to match DPI
+            const gl = my_canvas.getContext("webgl");
+            if (gl) {
+                gl.viewport(0, 0, my_canvas.width, my_canvas.height);
+            }
         }
 
         window.addEventListener('resize', resizeCanvas);
@@ -63,6 +73,25 @@
 
         // Load your Macroquad game
         load("kanjiban.wasm");
+    </script>
+    <button id="fullscreen-btn" style="
+    position: absolute;
+    top: 10px; right: 10px;
+    padding: 8px 12px;
+    font-size: 16px;
+    background: #333; color: white;
+    border: none; border-radius: 6px;">
+        ⛶ Fullscreen
+    </button>
+
+    <script>
+        document.getElementById("fullscreen-btn").addEventListener("click", () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.body.requestFullscreen();
+            }
+        });
     </script>
 </body>
 
