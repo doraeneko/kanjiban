@@ -35,13 +35,24 @@
         const my_canvas = document.getElementById("glcanvas");
         my_canvas.focus();  // Focus on load
 
-        // Always resize canvas to be a centered square
+
         function resizeCanvas() {
-            const size = Math.min(window.innerWidth, window.innerHeight);
-            my_canvas.width = size;
-            my_canvas.height = size;
-            my_canvas.style.width = size + "px";
-            my_canvas.style.height = size + "px";
+            const aspect = 16 / 9;
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            if (width / height > aspect) {
+                // Window is too wide → limit by height
+                width = height * aspect;
+            } else {
+                // Window is too tall → limit by width
+                height = width / aspect;
+            }
+
+            my_canvas.width = width;
+            my_canvas.height = height;
+            my_canvas.style.width = width + "px";
+            my_canvas.style.height = height + "px";
         }
 
         window.addEventListener('resize', resizeCanvas);
