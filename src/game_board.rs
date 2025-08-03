@@ -93,7 +93,7 @@ impl GameBoard {
             self.top_y,
             self.board_size,
             self.board_size,
-            WHITE,
+            LIGHTGRAY,
         );
 
         let draw_point = |p: &Point, kind: GameCell| {
@@ -131,20 +131,21 @@ impl GameBoard {
         }
         draw_point(&game_state.get_player_position(), GameCell::Player);
         let steps = game_state.steps();
+        let text_height_offset = (2.0 + game_state.height as f32) * sq_size;
         draw_text(
             format!("Steps: {steps}").as_str(),
             10.,
-            25. + self.board_size,
-            20.,
+            25. + text_height_offset,
+            30.,
             DARKGRAY,
         );
-        let mut line_chunks = game_state.get_title().chars().collect::<Vec<_>>(); // collect to vector of chars
-        let title_lines = line_chunks.chunks(80);
-        let mut text_height = 50. + self.board_size;
+        let line_chunks = game_state.get_title().chars().collect::<Vec<_>>();
+        let title_lines = line_chunks.chunks(50);
+        let mut text_height = 60. + text_height_offset;
         for line in title_lines {
             let output: String = line.iter().collect();
-            draw_text(&output, 10., text_height, 20., DARKGRAY);
-            text_height += 25.;
+            draw_text(&output, 10., text_height, 30., DARKGRAY);
+            text_height += 35.;
         }
     }
 

@@ -11,17 +11,26 @@ use crate::game_board::*;
 use crate::game_state::{GameState, Point};
 use crate::level_loader::LevelLoader;
 
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Kanjiban".to_owned(),
+        window_width: 720,
+        window_height: 1280,
+        fullscreen: false,
+        ..Default::default()
+    }
+}
+
 static LEVELS: &'static [&'static str] = &["0", "1", "gil1", "thinking_rabbit_1"];
 
 async fn load_level(level_prefix: &str) -> GameState {
     let ll = LevelLoader::new(&format!("{}{}{}", "levels/level_", level_prefix, ".lvl"));
     ll.parse_level().await
 }
-#[macroquad::main("Kanjiban")]
+#[macroquad::main(window_conf)]
 async fn main() {
-    let virtual_width = 800.;
-    let virtual_height = 600.;
-
+    let virtual_width = 720.;
+    let virtual_height = 1280.;
     // Apply a camera that scales everything
     let camera = Camera2D {
         target: vec2(virtual_width / 2., virtual_height / 2.),
@@ -29,16 +38,15 @@ async fn main() {
         ..Default::default()
     };
     set_camera(&camera);
-
-    let mut game_state = load_level("0").await;
-    let game_board = GameBoard::new(10., 10., 450.).await;
-    let mut combo = ComboBox::new(&camera, 500. + 20.0, 20., 200.0, &LEVELS);
-    let mut dir_pad = DirPad::new(&camera, 500.0 + 130.0, 250.0, 300.);
+    let game_board = GameBoard::new(5., 70., 700.).await;
+    let mut combo = ComboBox::new(&camera, 50.0, 10., 500.0, &LEVELS);
+    let dir_pad = DirPad::new(&camera, 360., 1000.0, 500.);
     let speed: f64 = 0.25;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
-
     let mut push_requested = false;
+
+    let mut game_state = load_level("0").await;
 
     loop {
         if let Some(selected) = combo.update() {

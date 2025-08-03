@@ -1,7 +1,7 @@
 // kanjiban
 // (C) 2025 by JoAn
 // Combo box functionality. Macroquad's combobox scales poorly.
-// Chatgpt helped a bit here. But it was necessary to adapt to the camera position.
+// Chatgpt helped with this component a lot. But it was necessary to adapt to the camera position.
 
 use crate::macroquad_helpers::get_adjusted_mouse_position;
 use macroquad::prelude::*;
@@ -24,7 +24,7 @@ impl<'a> ComboBox<'a> {
     ) -> Self {
         ComboBox {
             camera: camera,
-            rect: Rect::new(x, y, width, 30.0),
+            rect: Rect::new(x, y, width, 50.0),
             items,
             selected: 0,
             is_open: false,
@@ -37,15 +37,15 @@ impl<'a> ComboBox<'a> {
         draw_text(
             self.items[self.selected],
             self.rect.x + 5.0,
-            self.rect.y + 20.0,
-            20.0,
+            self.rect.y + 30.0,
+            40.0,
             WHITE,
         );
         draw_text(
             "(Level)",
             self.rect.x + self.rect.w + 10.,
-            self.rect.y + 20.0,
-            20.0,
+            self.rect.y + 30.0,
+            40.0,
             WHITE,
         );
 
@@ -64,7 +64,7 @@ impl<'a> ComboBox<'a> {
                     draw_rectangle(item_rect.x, item_rect.y, item_rect.w, item_rect.h, DARKGRAY);
                 }
 
-                draw_text(item, item_rect.x + 5.0, item_rect.y + 20.0, 20.0, WHITE);
+                draw_text(item, item_rect.x + 5.0, item_rect.y + 30.0, 40.0, WHITE);
             }
         }
     }
