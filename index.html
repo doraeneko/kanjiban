@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kanjiban</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Kanjiban mit Letterboxing</title>
     <style>
         html,
         body {
@@ -22,68 +22,74 @@
         canvas {
             background: black;
             display: block;
+            image-rendering: pixelated;
+        }
+
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 1000;
         }
     </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
 </head>
 
 <body>
-    <canvas id="glcanvas" tabindex="0"></canvas>
+    <canvas id="glcanvas" tabindex="0" width="720" height="1280"></canvas>
 
     <!-- Macroquad runtime -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
-    <script>
-        const my_canvas = document.getElementById("glcanvas");
-        my_canvas.focus();  // Focus on load
 
+    <script>
+        const canvas = document.getElementById("glcanvas");
+        const GAME_WIDTH = 720;
+        const GAME_HEIGHT = 1280;
+        const ASPECT_RATIO = GAME_WIDTH / GAME_HEIGHT;
 
         function resizeCanvas() {
-            const aspect = 9 / 16; // Portrait mode
-            let width = window.innerWidth;
-            let height = window.innerHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const windowRatio = windowWidth / windowHeight;
 
-            if (width / height > aspect) {
-                width = height * aspect;
+            let renderWidth, renderHeight;
+
+            if (windowRatio > ASPECT_RATIO) {
+                renderHeight = windowHeight;
+                renderWidth = renderHeight * ASPECT_RATIO;
             } else {
-                height = width / aspect;
+                renderWidth = windowWidth;
+                renderHeight = renderWidth / ASPECT_RATIO;
             }
 
-            // Handle device pixel ratio for crisp rendering
-            const dpr = window.devicePixelRatio || 1;
-            my_canvas.width = width * dpr;
-            my_canvas.height = height * dpr;
-            my_canvas.style.width = width + "px";
-            my_canvas.style.height = height + "px";
+            canvas.style.width = renderWidth + "px";
+            canvas.style.height = renderHeight + "px";
 
-            // Scale WebGL to match DPI
-            const gl = my_canvas.getContext("webgl");
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = GAME_WIDTH * dpr;
+            canvas.height = GAME_HEIGHT * dpr;
+
+            const gl = canvas.getContext("webgl");
             if (gl) {
-                gl.viewport(0, 0, my_canvas.width, my_canvas.height);
+                gl.viewport(0, 0, canvas.width, canvas.height);
             }
         }
 
-        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
 
-        // Refocus when clicking the canvas
-        my_canvas.addEventListener("click", () => my_canvas.focus());
+        canvas.addEventListener("click", () => canvas.focus());
 
-        // Load your Macroquad game
         load("kanjiban.wasm");
     </script>
-    <button id="fullscreen-btn" style="
-    position: absolute;
-    top: 10px; right: 10px;
-    padding: 8px 12px;
-    font-size: 16px;
-    background: #333; color: white;
-    border: none; border-radius: 6px;">
-        ⛶ Fullscreen
-    </button>
 
+    <button id="fullscreen-btn">⛶ Fullscreen</button>
     <script>
         document.getElementById("fullscreen-btn").addEventListener("click", () => {
             if (document.fullscreenElement) {
