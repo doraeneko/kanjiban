@@ -106,6 +106,7 @@ impl<'a> DirPad<'a> {
     // Returns the direction currently pressed (if any touch or click inside buttons)
     // Returns an Option with Direction enum, or None if no button pressed
     pub async fn get_direction(&self) -> Point {
+        /*
         if is_key_down(KeyCode::Right) {
             return DIR_RIGHT;
         } else if is_key_down(KeyCode::Left) {
@@ -115,6 +116,7 @@ impl<'a> DirPad<'a> {
         } else if is_key_down(KeyCode::Down) {
             return DIR_DOWN;
         }
+        */
 
         if is_mouse_button_pressed(MouseButton::Left) {
             // now: for mobile use touches, else use mouse

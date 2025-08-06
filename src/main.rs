@@ -14,23 +14,46 @@ use crate::level_loader::LevelLoader;
 fn window_conf() -> Conf {
     Conf {
         window_title: "Kanjiban".to_owned(),
-        window_width: 720,
-        window_height: 1280,
+        window_width: 1280,
+        window_height: 720,
         fullscreen: false,
         ..Default::default()
     }
 }
 
-static LEVELS: &'static [&'static str] = &["0", "1", "gil1", "thinking_rabbit_1"];
+static LEVELS: &'static [&'static str] = &["0", "1", "2", "3", "4", "5"];
 
 async fn load_level(level_prefix: &str) -> GameState {
     let ll = LevelLoader::new(&format!("{}{}{}", "levels/level_", level_prefix, ".lvl"));
     ll.parse_level().await
 }
+
+fn draw_status_bar(game_state: &GameState) {
+    let steps = game_state.steps();
+    let text_width_offset = 850.;
+    let text_height_offset = 600.0;
+    let mut text_height = text_height_offset;
+    draw_text(
+        format!("Steps: {steps}").as_str(),
+        text_width_offset,
+        text_height,
+        30.,
+        DARKGRAY,
+    );
+    let line_chunks = game_state.get_title().chars().collect::<Vec<_>>();
+    let title_lines = line_chunks.chunks(40);
+    text_height += 35.;
+    for line in title_lines {
+        let output: String = line.iter().collect();
+        draw_text(&output, text_width_offset, text_height, 20., BLUE);
+        text_height += 25.;
+    }
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
-    let virtual_width = 720.;
-    let virtual_height = 1280.;
+    let virtual_width = 1280.;
+    let virtual_height = 720.;
     // Apply a camera that scales everything
     let camera = Camera2D {
         target: vec2(virtual_width / 2., virtual_height / 2.),
@@ -38,14 +61,13 @@ async fn main() {
         ..Default::default()
     };
     set_camera(&camera);
-    let game_board = GameBoard::new(5., 70., 700.).await;
-    let mut combo = ComboBox::new(&camera, 50.0, 10., 500.0, &LEVELS);
-    let dir_pad = DirPad::new(&camera, 360., 1000.0, 500.);
+    let game_board = GameBoard::new(2., 2., 800.).await;
+    let mut combo = ComboBox::new(&camera, 850.0, 2., 200.0, &LEVELS);
+    let dir_pad = DirPad::new(&camera, 1050., 350.0, 400.);
     let speed: f64 = 0.25;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
     let mut push_requested = false;
-
     let mut game_state = load_level("0").await;
 
     loop {
@@ -90,8 +112,9 @@ async fn main() {
         } else {
             game_board.draw_win(&game_state);
         }
-        combo.draw();
+        draw_status_bar(&game_state);
         dir_pad.draw();
+        combo.draw();
 
         next_frame().await;
     }
