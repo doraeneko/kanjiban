@@ -1,2 +1,2 @@
 # kanjiban
-A sokoban clone written in Rust.
+A sokoban clone written in Rust. s
