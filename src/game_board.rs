@@ -14,15 +14,6 @@ const SINK_SPRITE: &str = "target_plate.png";
 const SINK_WITH_BOX_SPRITE: &str = "saved_box.png";
 const EMPTY_SPRITE: &str = "empty.png";
 
-#[derive(Hash, Clone, Copy, PartialEq, Eq)]
-pub enum GameCell {
-    Empty,
-    Box,
-    Player,
-    Sink,
-    SinkWithBox,
-    Unmovable,
-}
 
 pub struct SpriteManager {
     sprites: HashMap<GameCell, Texture2D>,

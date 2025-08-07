@@ -4,7 +4,18 @@
 
 use std::collections::LinkedList;
 
-pub const SQUARES: usize = 16;
+// States a game cell can be in
+#[derive(Hash, Clone, Copy, PartialEq, Eq)]
+pub enum GameCell {
+    Empty,
+    Box,
+    Player,
+    Sink,
+    SinkWithBox,
+    Unmovable,
+}
+
+
 use std::ops::Add;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -34,7 +45,7 @@ pub struct GameState {
     pub unmovable_blocks: LinkedList<Point>,
     pub movable_blocks: LinkedList<Point>,
     pub sinks: LinkedList<Point>,
-    andi: Player,
+    joan: Player,
     steps: i16,
     title: String,
 }
@@ -47,7 +58,7 @@ impl GameState {
             unmovable_blocks: LinkedList::new(),
             movable_blocks: LinkedList::new(),
             sinks: LinkedList::new(),
-            andi: Player {
+            joan: Player {
                 position: Point { x: 0, y: 0 },
                 direction: Point { x: 0, y: 0 },
             },
@@ -73,19 +84,19 @@ impl GameState {
     }
 
     pub fn set_direction(self: &mut Self, direction: Point) {
-        self.andi.direction = direction;
+        self.joan.direction = direction;
     }
 
     pub fn get_direction(self: &Self) -> Point {
-        return self.andi.direction;
+        return self.joan.direction;
     }
 
     pub fn get_player_position(self: &Self) -> Point {
-        return self.andi.position;
+        return self.joan.position;
     }
 
     pub fn set_player_position(self: &mut Self, position: Point) {
-        self.andi.position = position;
+        self.joan.position = position;
     }
 
     // next_position: The tile the player likes to move on
@@ -105,16 +116,16 @@ impl GameState {
     pub fn box_is_blocked(self: &mut GameState, next_position: &Point) -> bool {
         if self.movable_blocks.contains(&next_position) {
             let next_block_position = Point {
-                x: next_position.x + self.andi.direction.x,
-                y: next_position.y + self.andi.direction.y,
+                x: next_position.x + self.joan.direction.x,
+                y: next_position.y + self.joan.direction.y,
             };
             if self.is_block_movable(next_block_position) {
                 //movable_blocks.iter().find(|x: Point | *x == next_position)
                 for b in &mut self.movable_blocks {
                     if *b == *next_position {
                         let next_block_position = Point {
-                            x: b.x + self.andi.direction.x,
-                            y: b.y + self.andi.direction.y,
+                            x: b.x + self.joan.direction.x,
+                            y: b.y + self.joan.direction.y,
                         };
                         *b = next_block_position; // move the box
                     }
