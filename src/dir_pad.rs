@@ -116,6 +116,36 @@ impl<'a> DirPad<'a> {
             return DIR_DOWN;
         }
 
+        let mut touch_start: Option<Vec2> = None;
+        for touch in touches() {
+            match touch.phase {
+                TouchPhase::Started => {
+                    touch_start = Some(touch.position);
+                }
+                TouchPhase::Ended => {
+                    if let Some(start) = touch_start {
+                        let delta = touch.position - start;
+                        if delta.length() > 50.0 {
+                            if delta.x.abs() > delta.y.abs() {
+                                if delta.x > 0.0 {
+                                    return DIR_RIGHT;
+                                } else {
+                                    return DIR_LEFT;
+                                }
+                            } else {
+                                if delta.y > 0.0 {
+                                    return DIR_DOWN;
+                                }
+                                return DIR_UP;
+                            }
+                        }
+                    }
+                    touch_start = None;
+                }
+                _ => {}
+            }
+        }
+
         if is_mouse_button_pressed(MouseButton::Left) {
             // now: for mobile use touches, else use mouse
             let pos = get_adjusted_mouse_position(self.camera);

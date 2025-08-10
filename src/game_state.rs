@@ -42,7 +42,8 @@ pub struct Player {
 pub struct GameState {
     pub width: u16,
     pub height: u16,
-    pub unmovable_blocks: LinkedList<Point>,
+    pub 
+    unmovable_blocks: LinkedList<Point>,
     pub movable_blocks: LinkedList<Point>,
     pub sinks: LinkedList<Point>,
     joan: Player,

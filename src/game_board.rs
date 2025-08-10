@@ -129,7 +129,7 @@ impl GameBoard {
         let text = "You won!";
         let font_size = 30.;
         let text_size = measure_text(text, None, font_size as _, 1.0);
-        let sq_size = screen_height() / SQUARES as f32;
+        let sq_size = screen_height() / game_state.width.max(game_state.height) as f32;
         self.sprites.draw_sprite(
             GameCell::Player,
             screen_width() / 2. - text_size.width / 2. - 70.0,
