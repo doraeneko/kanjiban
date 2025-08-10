@@ -63,7 +63,7 @@ async fn main() {
     set_camera(&camera);
     let game_board = GameBoard::new(2., 2., 800.).await;
     let mut combo = ComboBox::new(&camera, 850.0, 2., 200.0, &LEVELS);
-    let dir_pad = DirPad::new(&camera, 1050., 350.0, 400.);
+    let mut dir_pad = DirPad::new(&camera, 1050., 350.0, 400.);
     let speed: f64 = 0.25;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state

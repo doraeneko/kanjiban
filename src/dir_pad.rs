@@ -11,6 +11,7 @@ pub struct DirPad<'a> {
     camera: &'a Camera2D,
     center: Vec2,
     size: f32, // Size of the D-pad (e.g. 150px)
+    touch_start: Option<Vec2>,
 }
 
 pub const DIR_NO_MOVE: Point = Point { x: 0, y: 0 };
@@ -28,6 +29,7 @@ impl<'a> DirPad<'a> {
                 y: center_y,
             },
             size,
+            touch_start: None,
         }
     }
 
@@ -105,7 +107,7 @@ impl<'a> DirPad<'a> {
 
     // Returns the direction currently pressed (if any touch or click inside buttons)
     // Returns an Option with Direction enum, or None if no button pressed
-    pub async fn get_direction(&self) -> Point {
+    pub async fn get_direction(&mut self) -> Point {
         if is_key_down(KeyCode::Right) {
             return DIR_RIGHT;
         } else if is_key_down(KeyCode::Left) {
@@ -116,14 +118,13 @@ impl<'a> DirPad<'a> {
             return DIR_DOWN;
         }
 
-        let mut touch_start: Option<Vec2> = None;
         for touch in touches() {
             match touch.phase {
                 TouchPhase::Started => {
-                    touch_start = Some(touch.position);
+                    self.touch_start = Some(touch.position);
                 }
                 TouchPhase::Ended => {
-                    if let Some(start) = touch_start {
+                    if let Some(start) = self.touch_start {
                         let delta = touch.position - start;
                         if delta.length() > 50.0 {
                             if delta.x.abs() > delta.y.abs() {
@@ -140,7 +141,7 @@ impl<'a> DirPad<'a> {
                             }
                         }
                     }
-                    touch_start = None;
+                    self.touch_start = None;
                 }
                 _ => {}
             }
