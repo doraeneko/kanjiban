@@ -1,12 +1,12 @@
 // kanjiban
 // (C) 2025 by JoAn
-// Combo box functionality. Macroquad's combobox scales poorly.
+// Level choCombo box functionality. Macroquad's combobox scales poorly.
 // Chatgpt helped with this component a lot. But it was necessary to adapt to the camera position.
 
 use crate::macroquad_helpers::get_adjusted_mouse_position;
 use macroquad::prelude::*;
 
-pub struct ComboBox<'a> {
+pub struct LevelChooser<'a> {
     rect: Rect,
     items: &'static [&'static str],
     selected: usize,
@@ -14,7 +14,7 @@ pub struct ComboBox<'a> {
     camera: &'a Camera2D,
 }
 
-impl<'a> ComboBox<'a> {
+impl<'a> LevelChooser<'a> {
     pub fn new(
         camera: &'a Camera2D,
         x: f32,
@@ -22,12 +22,12 @@ impl<'a> ComboBox<'a> {
         width: f32,
         items: &'static [&'static str],
     ) -> Self {
-        ComboBox {
-            camera: camera,
+        LevelChooser {
             rect: Rect::new(x, y, width, 50.0),
             items,
             selected: 0,
             is_open: false,
+            camera,
         }
     }
 

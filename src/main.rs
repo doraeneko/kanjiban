@@ -1,14 +1,14 @@
 use macroquad::prelude::*;
-mod combo_box;
-mod dir_pad;
 mod game_board;
 mod game_state;
+mod input_control;
+mod level_chooser;
 mod level_loader;
 mod macroquad_helpers;
-use crate::combo_box::ComboBox;
-use crate::dir_pad::{DIR_NO_MOVE, InputControl};
 use crate::game_board::*;
 use crate::game_state::{GameState, Point};
+use crate::input_control::{DIR_NO_MOVE, InputControl};
+use crate::level_chooser::LevelChooser;
 use crate::level_loader::LevelLoader;
 
 fn window_conf() -> Conf {
@@ -30,24 +30,32 @@ async fn load_level(level_prefix: &str) -> GameState {
 
 fn draw_status_bar(game_state: &GameState) {
     let steps = game_state.steps();
-    let text_width_offset = 850.;
-    let text_height_offset = 600.0;
-    let mut text_height = text_height_offset;
+    let start_x = 35.;
+    let start_y = 35.;
+    let mut text_height = start_y;
     draw_text(
         format!("Steps: {steps}").as_str(),
-        text_width_offset,
+        start_x,
         text_height,
         30.,
         DARKGRAY,
     );
-    let line_chunks = game_state.get_title().chars().collect::<Vec<_>>();
-    let title_lines = line_chunks.chunks(40);
-    text_height += 35.;
-    for line in title_lines {
-        let output: String = line.iter().collect();
-        draw_text(&output, text_width_offset, text_height, 20., BLUE);
-        text_height += 25.;
-    }
+    text_height = 20.;
+    draw_text(
+        game_state.get_title(),
+        start_x + 250.0,
+        text_height,
+        20.,
+        BLUE,
+    );
+    text_height += 20.;
+    draw_text(
+        game_state.get_author(),
+        start_x + 250.0,
+        text_height,
+        20.,
+        BLUE,
+    );
 }
 
 #[macroquad::main(window_conf)]
@@ -61,20 +69,20 @@ async fn main() {
         ..Default::default()
     };
     set_camera(&camera);
-    let game_board = GameBoard::new(2., 2., 800.).await;
-    let mut combo = ComboBox::new(&camera, 850.0, 2., 200.0, &LEVELS);
-    let mut dir_pad = InputControl::new(&camera, 1050., 350.0, 400.);
+    let game_board = GameBoard::new(2., 50., 1270., 660.).await;
+    let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 200.0, LEVELS);
+    let mut input_control = InputControl::new(&camera);
     let speed: f64 = 0.1;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
     let mut game_state = load_level("0").await;
 
     loop {
-        if let Some(selected) = combo.update() {
-            game_state = load_level(&LEVELS[selected]).await;
+        if let Some(selected) = level_chooser.update() {
+            game_state = load_level(LEVELS[selected]).await;
             game_over = false;
         }
-        let direction = dir_pad.get_direction().await;
+        let direction = input_control.get_direction().await;
         game_state.set_direction(direction);
 
         if get_time() - last_update > speed {
@@ -105,8 +113,7 @@ async fn main() {
             game_board.draw_win(&game_state);
         }
         draw_status_bar(&game_state);
-        dir_pad.draw();
-        combo.draw();
+        level_chooser.draw();
 
         next_frame().await;
     }

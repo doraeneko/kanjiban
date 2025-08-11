@@ -14,7 +14,6 @@ const SINK_SPRITE: &str = "target_plate.png";
 const SINK_WITH_BOX_SPRITE: &str = "saved_box.png";
 const EMPTY_SPRITE: &str = "empty.png";
 
-
 pub struct SpriteManager {
     sprites: HashMap<GameCell, Texture2D>,
 }
@@ -38,10 +37,10 @@ impl SpriteManager {
                 .unwrap();
             result.sprites.insert(cell_element, texture);
         }
-        return result;
+        result
     }
 
-    pub fn draw_sprite(self: &Self, kind: GameCell, x: f32, y: f32, size_x: f32, size_y: f32) {
+    pub fn draw_sprite(&self, kind: GameCell, x: f32, y: f32, size_x: f32, size_y: f32) {
         draw_texture_ex(
             &self.sprites[&kind],
             x,
@@ -59,16 +58,18 @@ pub struct GameBoard {
     sprites: SpriteManager,
     top_x: f32,
     top_y: f32,
-    board_size: f32,
+    max_x: f32,
+    max_y: f32,
 }
 
 impl GameBoard {
-    pub async fn new(top_x: f32, top_y: f32, board_size: f32) -> Self {
+    pub async fn new(top_x: f32, top_y: f32, max_x: f32, max_y: f32) -> Self {
         Self {
             sprites: SpriteManager::new().await,
-            top_x: top_x,
-            top_y: top_y,
-            board_size: board_size,
+            top_x,
+            top_y,
+            max_x,
+            max_y,
         }
     }
 }
@@ -77,15 +78,10 @@ impl GameBoard {
     pub fn draw_board(self: &GameBoard, game_state: &GameState) {
         clear_background(LIGHTGRAY);
 
-        let sq_size = (self.board_size) / (game_state.height.max(game_state.width) as f32);
+        let sq_size =
+            (self.max_x.min(self.max_y)) / (game_state.height.min(game_state.width) as f32);
 
-        draw_rectangle(
-            self.top_x,
-            self.top_y,
-            self.board_size,
-            self.board_size,
-            LIGHTGRAY,
-        );
+        draw_rectangle(self.top_x, self.top_y, self.max_x, self.max_y, BEIGE);
 
         let draw_point = |p: &Point, kind: GameCell| {
             self.sprites.draw_sprite(

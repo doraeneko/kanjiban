@@ -23,10 +23,10 @@ impl LevelLoader {
 
     // returns true iff only characters for describing board content are contained in line.
     fn is_level_line(self: &Self, line: &str) -> bool {
-        return !line.chars().any(|c| !ALLOWED_BOARD_CHARS.contains(c));
+        !line.chars().any(|c| !ALLOWED_BOARD_CHARS.contains(c))
     }
 
-    pub async fn parse_level(self: &Self) -> GameState {
+    pub async fn parse_level(&self) -> GameState {
         // TODO: better error handling
         let contents = load_string(&self.level_path).await.unwrap();
 
@@ -39,7 +39,7 @@ impl LevelLoader {
         let lines: Vec<&str> = contents.lines().collect();
         while current_line_idx < lines.len() {
             let line = lines[current_line_idx];
-            if line.len() == 0 {
+            if line.is_empty() {
                 current_line_idx += 1;
                 continue;
             }
@@ -79,9 +79,13 @@ impl LevelLoader {
                 }
                 ParseState::ReadGameBoard => {
                     let title_prefix = "Title: ";
+                    let author_prefix = "Author: ";
+
                     if line.starts_with(title_prefix) {
                         result.set_title(&line[title_prefix.len()..]);
-                    } // ignore other key/value pairs for now.
+                    } else if line.starts_with(author_prefix) {
+                        result.set_author(&line[author_prefix.len()..]);
+                    }
                 }
             }
             current_line_idx += 1;
