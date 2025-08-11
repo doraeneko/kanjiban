@@ -43,7 +43,7 @@ impl<'a> InputControl<'a> {
                 TouchPhase::Ended => {
                     if let Some(start) = self.touch_start {
                         let delta = touch.position - start;
-                        if delta.length() > 50.0 {
+                        if delta.length() > 25.0 {
                             if delta.x.abs() > delta.y.abs() {
                                 if delta.x > 0.0 {
                                     return DIR_RIGHT;
