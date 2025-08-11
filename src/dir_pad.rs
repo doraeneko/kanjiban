@@ -7,7 +7,7 @@ use crate::game_state::Point;
 use crate::macroquad_helpers::get_adjusted_mouse_position;
 use macroquad::prelude::*;
 
-pub struct DirPad<'a> {
+pub struct InputControl<'a> {
     camera: &'a Camera2D,
     center: Vec2,
     size: f32, // Size of the D-pad (e.g. 150px)
@@ -20,7 +20,7 @@ pub const DIR_DOWN: Point = Point { x: 0, y: 1 };
 pub const DIR_RIGHT: Point = Point { x: 1, y: 0 };
 pub const DIR_LEFT: Point = Point { x: -1, y: 0 };
 
-impl<'a> DirPad<'a> {
+impl<'a> InputControl<'a> {
     pub fn new(camera: &'a Camera2D, center_x: f32, center_y: f32, size: f32) -> Self {
         Self {
             camera,

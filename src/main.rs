@@ -6,7 +6,7 @@ mod game_state;
 mod level_loader;
 mod macroquad_helpers;
 use crate::combo_box::ComboBox;
-use crate::dir_pad::{DIR_NO_MOVE, DirPad};
+use crate::dir_pad::{DIR_NO_MOVE, InputControl};
 use crate::game_board::*;
 use crate::game_state::{GameState, Point};
 use crate::level_loader::LevelLoader;
@@ -63,11 +63,10 @@ async fn main() {
     set_camera(&camera);
     let game_board = GameBoard::new(2., 2., 800.).await;
     let mut combo = ComboBox::new(&camera, 850.0, 2., 200.0, &LEVELS);
-    let mut dir_pad = DirPad::new(&camera, 1050., 350.0, 400.);
-    let speed: f64 = 0.25;
+    let mut dir_pad = InputControl::new(&camera, 1050., 350.0, 400.);
+    let speed: f64 = 0.1;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
-    let mut push_requested = false;
     let mut game_state = load_level("0").await;
 
     loop {
@@ -75,38 +74,31 @@ async fn main() {
             game_state = load_level(&LEVELS[selected]).await;
             game_over = false;
         }
-        if !push_requested {
-            let direction = dir_pad.get_direction().await;
-            if direction != DIR_NO_MOVE {
-                game_state.set_direction(direction);
-                push_requested = true;
-            }
-        }
-        if !game_over {
-            if get_time() - last_update > speed {
-                last_update = get_time();
-                if push_requested {
-                    push_requested = false;
-                    // player likes to move on this tile:
-                    let next_position: Point =
-                        game_state.get_player_position() + game_state.get_direction();
-                    let mut player_can_move = true;
-                    if game_state.is_blocked_by_a_wall(&next_position) {
-                        player_can_move = false;
-                    }
-                    if game_state.box_is_blocked(&next_position) {
-                        player_can_move = false;
-                    }
+        let direction = dir_pad.get_direction().await;
+        game_state.set_direction(direction);
 
-                    if player_can_move && next_position != game_state.get_player_position() {
-                        game_state.set_player_position(next_position);
-                        game_state.inc_steps();
-                        game_over = game_state.all_boxes_on_sinks();
-                    }
-                }
-                game_state.set_direction(DIR_NO_MOVE);
+        if get_time() - last_update > speed {
+            last_update = get_time();
+            // player likes to move on this tile:
+            let next_position: Point =
+                game_state.get_player_position() + game_state.get_direction();
+            let mut player_can_move = true;
+            if game_state.is_blocked_by_a_wall(&next_position) {
+                player_can_move = false;
             }
+            if game_state.box_is_blocked(&next_position) {
+                player_can_move = false;
+            }
+
+            if player_can_move && next_position != game_state.get_player_position() {
+                game_state.set_player_position(next_position);
+                game_state.inc_steps();
+                game_over = game_state.all_boxes_on_sinks();
+            }
+
+            game_state.set_direction(DIR_NO_MOVE);
         }
+
         if !game_over {
             game_board.draw_board(&game_state);
         } else {
