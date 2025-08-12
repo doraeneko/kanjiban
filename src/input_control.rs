@@ -8,6 +8,7 @@ use std::collections::HashMap;
 pub struct InputControl<'a> {
     camera: &'a Camera2D,
     touch_starts: HashMap<u64, Vec2>,
+    prev_touches: HashMap<u64, Vec2>,
 }
 
 pub const DIR_NO_MOVE: Point = Point { x: 0, y: 0 };
@@ -21,6 +22,7 @@ impl<'a> InputControl<'a> {
         Self {
             camera,
             touch_starts: HashMap::new(),
+            prev_touches: HashMap::new(),
         }
     }
     // Returns the direction currently pressed (if any touch or click inside buttons)
@@ -35,32 +37,48 @@ impl<'a> InputControl<'a> {
         } else if is_key_down(KeyCode::Down) {
             return DIR_DOWN;
         }
-        for touch in touches() {
-            match touch.phase {
-                TouchPhase::Started => {
-                    self.touch_starts.insert(touch.id, touch.position);
-                }
-                TouchPhase::Ended => {
-                    if let Some(start) = self.touch_starts.remove(&touch.id) {
-                        let delta = touch.position - start;
-                        if delta.length() > 20.0 {
-                            if delta.x.abs() > delta.y.abs() {
-                                if delta.x > 0.0 {
-                                    return DIR_RIGHT;
-                                } else {
-                                    return DIR_LEFT;
-                                }
-                            } else if delta.y > 0.0 {
-                                return DIR_DOWN;
+        // Get current touches
+        let current_touches: Vec<Touch> = touches();
+
+        // Register new touches
+        for touch in &current_touches {
+            if !self.touch_starts.contains_key(&touch.id) {
+                self.touch_starts.insert(touch.id, touch.position);
+            }
+        }
+
+        // Detect disappeared touches
+        for (&id, &start_pos) in self.prev_touches.iter() {
+            if !current_touches.iter().any(|t| t.id == id) {
+                // This touch disappeared — treat as "ended"
+                if let Some(start) = self.touch_starts.remove(&id) {
+                    let delta = start_pos - start; // careful: might want end_pos - start_pos
+                    let end_pos = start_pos;
+                    let delta = end_pos - start;
+
+                    if delta.length() > 20.0 {
+                        if delta.x.abs() > delta.y.abs() {
+                            if delta.x > 0.0 {
+                                return DIR_RIGHT;
                             } else {
-                                return DIR_UP;
+                                return DIR_LEFT;
                             }
+                        } else if delta.y > 0.0 {
+                            return DIR_DOWN;
+                        } else {
+                            return DIR_UP;
                         }
                     }
                 }
-                _ => {}
             }
         }
+
+        // Update prev_touches for next frame
+        self.prev_touches.clear();
+        for touch in &current_touches {
+            self.prev_touches.insert(touch.id, touch.position);
+        }
+
         // found no direction request
         DIR_NO_MOVE
     }
