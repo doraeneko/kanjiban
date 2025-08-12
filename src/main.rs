@@ -97,7 +97,6 @@ async fn main() {
             if game_state.box_is_blocked(&next_position) {
                 player_can_move = false;
             }
-
             if player_can_move && next_position != game_state.get_player_position() {
                 game_state.set_player_position(next_position);
                 game_state.inc_steps();

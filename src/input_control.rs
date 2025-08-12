@@ -3,10 +3,11 @@
 // Input control logic for game board, keys or swipe.
 use crate::game_state::Point;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
 pub struct InputControl<'a> {
     camera: &'a Camera2D,
-    touch_start: Option<Vec2>,
+    touch_starts: HashMap<u64, Vec2>,
 }
 
 pub const DIR_NO_MOVE: Point = Point { x: 0, y: 0 };
@@ -18,8 +19,8 @@ pub const DIR_LEFT: Point = Point { x: -1, y: 0 };
 impl<'a> InputControl<'a> {
     pub fn new(camera: &'a Camera2D) -> Self {
         Self {
-            camera: camera,
-            touch_start: None,
+            camera,
+            touch_starts: HashMap::new(),
         }
     }
     // Returns the direction currently pressed (if any touch or click inside buttons)
@@ -34,31 +35,28 @@ impl<'a> InputControl<'a> {
         } else if is_key_down(KeyCode::Down) {
             return DIR_DOWN;
         }
-
         for touch in touches() {
             match touch.phase {
                 TouchPhase::Started => {
-                    self.touch_start = Some(touch.position);
+                    self.touch_starts.insert(touch.id, touch.position);
                 }
                 TouchPhase::Ended => {
-                    if let Some(start) = self.touch_start {
+                    if let Some(start) = self.touch_starts.remove(&touch.id) {
                         let delta = touch.position - start;
-                        if delta.length() > 10.0 {
+                        if delta.length() > 20.0 {
                             if delta.x.abs() > delta.y.abs() {
                                 if delta.x > 0.0 {
                                     return DIR_RIGHT;
                                 } else {
                                     return DIR_LEFT;
                                 }
+                            } else if delta.y > 0.0 {
+                                return DIR_DOWN;
                             } else {
-                                if delta.y > 0.0 {
-                                    return DIR_DOWN;
-                                }
                                 return DIR_UP;
                             }
                         }
                     }
-                    self.touch_start = None;
                 }
                 _ => {}
             }
