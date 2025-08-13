@@ -82,7 +82,7 @@ async fn main() {
     };
     set_camera(&camera);
     let game_board = GameBoard::new(2., 110., 1270., 600.).await;
-    let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 300.0, LEVELS, &fonts);
+    let mut level_chooser = LevelChooser::new(&camera, 920.0, 2., 350.0, LEVELS, &fonts);
     let mut input_control = InputControl::new();
     let speed: f64 = 0.25;
     let mut last_update = get_time();
