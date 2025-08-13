@@ -82,7 +82,7 @@ async fn main() {
             game_state = load_level(LEVELS[selected]).await;
             game_over = false;
         }
-        let direction = input_control.get_direction().await;
+        let direction = input_control.get_direction();
         game_state.set_direction(direction);
 
         if get_time() - last_update > speed {

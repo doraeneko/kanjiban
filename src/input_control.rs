@@ -27,7 +27,7 @@ impl<'a> InputControl<'a> {
     }
     // Returns the direction currently pressed (if any touch or click inside buttons)
     // Returns an Option with Direction enum, or None if no button pressed
-    pub async fn get_direction(&mut self) -> Point {
+    pub fn get_direction(&mut self) -> Point {
         if is_key_down(KeyCode::Right) {
             return DIR_RIGHT;
         } else if is_key_down(KeyCode::Left) {
