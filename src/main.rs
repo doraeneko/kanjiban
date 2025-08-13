@@ -32,17 +32,17 @@ async fn load_level(level_prefix: &str) -> GameState {
 fn draw_status_bar(game_state: &GameState, fonts: &FontProvider) {
     let steps = game_state.steps();
     let start_x = 35.;
-    let start_y = 35.;
+    let start_y = 65.;
     let mut text_height = start_y;
     let gray_text_params = TextParams {
         font: Some(fonts.font()),
-        font_size: 30,
+        font_size: 50,
         color: DARKGRAY,
         ..Default::default()
     };
     let blue_text_params = TextParams {
         font: Some(fonts.font()),
-        font_size: 20,
+        font_size: 30,
         color: BLUE,
         ..Default::default()
     };
@@ -53,14 +53,14 @@ fn draw_status_bar(game_state: &GameState, fonts: &FontProvider) {
         text_height,
         gray_text_params,
     );
-    text_height = 20.;
+    text_height = 30.;
     draw_text_ex(
         game_state.get_title(),
         start_x + 250.0,
         text_height,
         blue_text_params.clone(),
     );
-    text_height += 20.;
+    text_height += 30.;
     draw_text_ex(
         game_state.get_author(),
         start_x + 250.0,
@@ -81,7 +81,7 @@ async fn main() {
         ..Default::default()
     };
     set_camera(&camera);
-    let game_board = GameBoard::new(2., 50., 1270., 660.).await;
+    let game_board = GameBoard::new(2., 110., 1270., 600.).await;
     let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 300.0, LEVELS, &fonts);
     let mut input_control = InputControl::new();
     let speed: f64 = 0.25;

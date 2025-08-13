@@ -25,7 +25,7 @@ impl<'a> LevelChooser<'a> {
         fonts: &'a FontProvider,
     ) -> Self {
         LevelChooser {
-            rect: Rect::new(x, y, width, 50.0),
+            rect: Rect::new(x, y, width, 80.0),
             items,
             selected: 0,
             is_open: false,
@@ -39,20 +39,20 @@ impl<'a> LevelChooser<'a> {
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, DARKGRAY);
         let text_params = TextParams {
             font: Some(self.fonts.font()),
-            font_size: 38,
+            font_size: 68,
             color: WHITE,
             ..Default::default()
         };
         let symbol_text_params = TextParams {
             font: Some(self.fonts.symbol_font()),
-            font_size: 38,
+            font_size: 68,
             color: WHITE,
             ..Default::default()
         };
         draw_text_ex(
             "▼ Level",
             self.rect.x + 5.0,
-            self.rect.y + 33.0,
+            self.rect.y + 63.0,
             symbol_text_params.clone(),
         );
 
@@ -74,7 +74,7 @@ impl<'a> LevelChooser<'a> {
                 draw_text_ex(
                     item,
                     item_rect.x + 5.0,
-                    item_rect.y + 30.0,
+                    item_rect.y + 60.0,
                     text_params.clone(),
                 );
             }
