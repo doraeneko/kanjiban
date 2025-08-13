@@ -7,8 +7,7 @@ use std::collections::HashMap;
 
 pub struct InputControl<'a> {
     camera: &'a Camera2D,
-    touch_starts: HashMap<u64, Vec2>,
-    prev_touches: HashMap<u64, Vec2>,
+    touch_start: Option<Vec2>,
 }
 
 pub const DIR_NO_MOVE: Point = Point { x: 0, y: 0 };
@@ -21,8 +20,7 @@ impl<'a> InputControl<'a> {
     pub fn new(camera: &'a Camera2D) -> Self {
         Self {
             camera,
-            touch_starts: HashMap::new(),
-            prev_touches: HashMap::new(),
+            touch_start: None,
         }
     }
     // Returns the direction currently pressed (if any touch or click inside buttons)
@@ -37,16 +35,36 @@ impl<'a> InputControl<'a> {
         } else if is_key_down(KeyCode::Down) {
             return DIR_DOWN;
         }
+
         for touch in touches() {
-            let (fill_color, size) = match touch.phase {
-                TouchPhase::Started => (GREEN, 80.0),
-                TouchPhase::Stationary => (WHITE, 60.0),
-                TouchPhase::Moved => (YELLOW, 60.0),
-                TouchPhase::Ended => (BLUE, 80.0),
-                TouchPhase::Cancelled => (BLACK, 80.0),
-            };
-            draw_circle(touch.position.x, touch.position.y, size, fill_color);
+            match touch.phase {
+                TouchPhase::Started => {
+                    self.touch_start = Some(touch.position);
+                }
+                TouchPhase::Ended => {
+                    if let Some(start) = self.touch_start {
+                        let delta = touch.position - start;
+                        if delta.length() > 10.0 {
+                            if delta.x.abs() > delta.y.abs() {
+                                if delta.x > 0.0 {
+                                    return DIR_RIGHT;
+                                } else {
+                                    return DIR_LEFT;
+                                }
+                            } else {
+                                if delta.y > 0.0 {
+                                    return DIR_DOWN;
+                                }
+                                return DIR_UP;
+                            }
+                        }
+                    }
+                    self.touch_start = None;
+                }
+                _ => {}
+            }
         }
+        /*
         // Get current touches
         let current_touches: Vec<Touch> = touches();
 
@@ -88,7 +106,7 @@ impl<'a> InputControl<'a> {
         for touch in &current_touches {
             self.prev_touches.insert(touch.id, touch.position);
         }
-
+        */
         // found no direction request
         DIR_NO_MOVE
     }

@@ -72,7 +72,7 @@ async fn main() {
     let game_board = GameBoard::new(2., 50., 1270., 660.).await;
     let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 200.0, LEVELS);
     let mut input_control = InputControl::new(&camera);
-    let speed: f64 = 0.75;
+    let speed: f64 = 0.5;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
     let mut game_state = load_level("0").await;
