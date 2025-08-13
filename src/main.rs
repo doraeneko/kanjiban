@@ -10,6 +10,7 @@ use crate::game_state::{GameState, Point};
 use crate::input_control::{DIR_NO_MOVE, InputControl};
 use crate::level_chooser::LevelChooser;
 use crate::level_loader::LevelLoader;
+use crate::macroquad_helpers::FontProvider;
 
 fn window_conf() -> Conf {
     Conf {
@@ -21,45 +22,56 @@ fn window_conf() -> Conf {
     }
 }
 
-static LEVELS: &'static [&'static str] = &["0", "1", "2", "3", "4", "5"];
+static LEVELS: &[&str] = &["0", "1", "2", "3", "4", "5"];
 
 async fn load_level(level_prefix: &str) -> GameState {
     let ll = LevelLoader::new(&format!("{}{}{}", "levels/level_", level_prefix, ".lvl"));
     ll.parse_level().await
 }
 
-fn draw_status_bar(game_state: &GameState) {
+fn draw_status_bar(game_state: &GameState, fonts: &FontProvider) {
     let steps = game_state.steps();
     let start_x = 35.;
     let start_y = 35.;
     let mut text_height = start_y;
-    draw_text(
+    let gray_text_params = TextParams {
+        font: Some(fonts.font()),
+        font_size: 30,
+        color: DARKGRAY,
+        ..Default::default()
+    };
+    let blue_text_params = TextParams {
+        font: Some(fonts.font()),
+        font_size: 20,
+        color: BLUE,
+        ..Default::default()
+    };
+
+    draw_text_ex(
         format!("Steps: {steps}").as_str(),
         start_x,
         text_height,
-        30.,
-        DARKGRAY,
+        gray_text_params,
     );
     text_height = 20.;
-    draw_text(
+    draw_text_ex(
         game_state.get_title(),
         start_x + 250.0,
         text_height,
-        20.,
-        BLUE,
+        blue_text_params.clone(),
     );
     text_height += 20.;
-    draw_text(
+    draw_text_ex(
         game_state.get_author(),
         start_x + 250.0,
         text_height,
-        20.,
-        BLUE,
+        blue_text_params.clone(),
     );
 }
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let fonts = FontProvider::new().await;
     let virtual_width = 1280.;
     let virtual_height = 720.;
     // Apply a camera that scales everything
@@ -70,9 +82,9 @@ async fn main() {
     };
     set_camera(&camera);
     let game_board = GameBoard::new(2., 50., 1270., 660.).await;
-    let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 200.0, LEVELS);
-    let mut input_control = InputControl::new(&camera);
-    let speed: f64 = 0.5;
+    let mut level_chooser = LevelChooser::new(&camera, 850.0, 2., 300.0, LEVELS, &fonts);
+    let mut input_control = InputControl::new();
+    let speed: f64 = 0.25;
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
     let mut game_state = load_level("0").await;
@@ -112,7 +124,7 @@ async fn main() {
         } else {
             game_board.draw_win(&game_state);
         }
-        draw_status_bar(&game_state);
+        draw_status_bar(&game_state, &fonts);
         level_chooser.draw();
 
         next_frame().await;

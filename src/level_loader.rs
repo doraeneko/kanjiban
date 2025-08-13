@@ -22,7 +22,7 @@ impl LevelLoader {
     }
 
     // returns true iff only characters for describing board content are contained in line.
-    fn is_level_line(self: &Self, line: &str) -> bool {
+    fn is_level_line(&self, line: &str) -> bool {
         !line.chars().any(|c| !ALLOWED_BOARD_CHARS.contains(c))
     }
 

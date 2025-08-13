@@ -3,7 +3,7 @@
 // Level choCombo box functionality. Macroquad's combobox scales poorly.
 // Chatgpt helped with this component a lot. But it was necessary to adapt to the camera position.
 
-use crate::macroquad_helpers::get_adjusted_mouse_position;
+use crate::macroquad_helpers::{FontProvider, get_adjusted_mouse_position};
 use macroquad::prelude::*;
 
 pub struct LevelChooser<'a> {
@@ -12,6 +12,7 @@ pub struct LevelChooser<'a> {
     selected: usize,
     is_open: bool,
     camera: &'a Camera2D,
+    fonts: &'a FontProvider,
 }
 
 impl<'a> LevelChooser<'a> {
@@ -21,6 +22,7 @@ impl<'a> LevelChooser<'a> {
         y: f32,
         width: f32,
         items: &'static [&'static str],
+        fonts: &'a FontProvider,
     ) -> Self {
         LevelChooser {
             rect: Rect::new(x, y, width, 50.0),
@@ -28,28 +30,33 @@ impl<'a> LevelChooser<'a> {
             selected: 0,
             is_open: false,
             camera,
+            fonts,
         }
     }
 
     pub fn draw(&self) {
         // Draw the main box
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, DARKGRAY);
-        draw_text(
-            self.items[self.selected],
+        let text_params = TextParams {
+            font: Some(self.fonts.font()),
+            font_size: 38,
+            color: WHITE,
+            ..Default::default()
+        };
+        let symbol_text_params = TextParams {
+            font: Some(self.fonts.symbol_font()),
+            font_size: 38,
+            color: WHITE,
+            ..Default::default()
+        };
+        draw_text_ex(
+            "▼ Level",
             self.rect.x + 5.0,
-            self.rect.y + 30.0,
-            40.0,
-            WHITE,
-        );
-        draw_text(
-            "(Level)",
-            self.rect.x + self.rect.w + 10.,
-            self.rect.y + 30.0,
-            40.0,
-            WHITE,
+            self.rect.y + 33.0,
+            symbol_text_params.clone(),
         );
 
-        let mouse_world = get_adjusted_mouse_position(&self.camera);
+        let mouse_world = get_adjusted_mouse_position(self.camera);
 
         // If open, draw the dropdown items below
         if self.is_open {
@@ -64,13 +71,18 @@ impl<'a> LevelChooser<'a> {
                     draw_rectangle(item_rect.x, item_rect.y, item_rect.w, item_rect.h, DARKGRAY);
                 }
 
-                draw_text(item, item_rect.x + 5.0, item_rect.y + 30.0, 40.0, WHITE);
+                draw_text_ex(
+                    item,
+                    item_rect.x + 5.0,
+                    item_rect.y + 30.0,
+                    text_params.clone(),
+                );
             }
         }
     }
 
     pub fn update(&mut self) -> Option<usize> {
-        let mouse_pos = get_adjusted_mouse_position(&self.camera);
+        let mouse_pos = get_adjusted_mouse_position(self.camera);
 
         if is_mouse_button_pressed(MouseButton::Left) {
             let mouse_pt = Vec2::new(mouse_pos.x, mouse_pos.y);
