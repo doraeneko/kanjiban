@@ -55,14 +55,14 @@ fn draw_status_bar(game_state: &GameState, fonts: &FontProvider) {
     );
     text_height = 30.;
     draw_text_ex(
-        game_state.get_title(),
+        game_state.title(),
         start_x + 250.0,
         text_height,
         blue_text_params.clone(),
     );
     text_height += 30.;
     draw_text_ex(
-        game_state.get_author(),
+        game_state.author(),
         start_x + 250.0,
         text_height,
         blue_text_params.clone(),

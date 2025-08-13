@@ -39,8 +39,9 @@ pub struct Player {
 }
 
 pub struct GameState {
-    pub width: u16,
-    pub height: u16,
+    width: usize,
+    height: usize,
+    cells: Vec<GameCell>,
     pub unmovable_blocks: LinkedList<Point>,
     pub movable_blocks: LinkedList<Point>,
     pub sinks: LinkedList<Point>,
@@ -51,10 +52,11 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Self {
-            width: 0,
-            height: 0,
+            width,
+            height,
+            cells: vec![GameCell::Empty; width * height],
             unmovable_blocks: LinkedList::new(),
             movable_blocks: LinkedList::new(),
             sinks: LinkedList::new(),
@@ -68,11 +70,19 @@ impl GameState {
         }
     }
 
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     pub fn set_title(&mut self, title: &str) {
         self.title = String::from(title);
     }
 
-    pub fn get_title(&self) -> &str {
+    pub fn title(&self) -> &str {
         &self.title
     }
 
@@ -80,7 +90,7 @@ impl GameState {
         self.author = String::from(author);
     }
 
-    pub fn get_author(&self) -> &str {
+    pub fn author(&self) -> &str {
         &self.author
     }
 

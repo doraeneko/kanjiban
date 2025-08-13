@@ -79,7 +79,7 @@ impl GameBoard {
         clear_background(LIGHTGRAY);
 
         let sq_size =
-            (self.max_x.min(self.max_y)) / (game_state.height.min(game_state.width) as f32);
+            (self.max_x.min(self.max_y)) / (game_state.height().min(game_state.width()) as f32);
 
         draw_rectangle(self.top_x, self.top_y, self.max_x, self.max_y, BEIGE);
 
@@ -92,8 +92,8 @@ impl GameBoard {
                 sq_size,
             )
         };
-        for x in 0..game_state.width {
-            for y in 0..game_state.height {
+        for x in 0..game_state.width() {
+            for y in 0..game_state.height() {
                 draw_point(
                     &Point {
                         x: x as i32,
@@ -125,7 +125,7 @@ impl GameBoard {
         let text = "You won!";
         let font_size = 30.;
         let text_size = measure_text(text, None, font_size as _, 1.0);
-        let sq_size = screen_height() / game_state.width.max(game_state.height) as f32;
+        let sq_size = screen_height() / game_state.width().max(game_state.height()) as f32;
         self.sprites.draw_sprite(
             GameCell::Player,
             screen_width() / 2. - text_size.width / 2. - 70.0,

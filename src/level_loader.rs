@@ -32,11 +32,28 @@ impl LevelLoader {
 
         let mut current_line_idx = 0;
         assert!(!contents.is_empty());
-        let mut result = GameState::new();
         let mut parse_state = ParseState::Start;
         let mut y_pos: i32 = 0;
         let mut x_pos: i32 = 0;
         let lines: Vec<&str> = contents.lines().collect();
+        let mut width: usize = 0;
+        let mut height: usize = 0;
+        // peek to get the dimensions of the game board
+        for line in &lines {
+            if line.is_empty() {
+                continue;
+            }
+            if line.contains(':') {
+                break;
+            }
+            height += 1;
+            width = width.max(line.len());
+        }
+        assert!(height > 0);
+        assert!(width > 0);
+        let mut result = GameState::new(width, height);
+        // actually parse the lines of the game board and
+        // the additional info
         while current_line_idx < lines.len() {
             let line = lines[current_line_idx];
             if line.is_empty() {
@@ -71,10 +88,8 @@ impl LevelLoader {
                             _ => {} // floor
                         }
                         x_pos += 1;
-                        result.width = result.width.max(x_pos as u16);
                     }
                     y_pos += 1;
-                    result.height = result.height.max(y_pos as u16);
                     x_pos = 0;
                 }
                 ParseState::ReadGameBoard => {
