@@ -2,7 +2,7 @@
 // (C) 2025 by JoAn
 // Input control logic for game board, keys or swipe.
 
-use crate::game_state::Point;
+use crate::game_logic::Point;
 use macroquad::prelude::*;
 
 pub struct InputControl {

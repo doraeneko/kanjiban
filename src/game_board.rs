@@ -2,7 +2,7 @@
 // (C) 2025 by JoAn
 // Drawing game states to the screen using a game board.
 
-use crate::game_state::*;
+use crate::game_logic::*;
 use macroquad::prelude::*;
 use std::collections::HashMap;
 

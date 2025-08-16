@@ -17,7 +17,7 @@ use std::ops::Add;
 
 use crate::input_control::DIR_NO_MOVE;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Hash, Clone, Copy, PartialEq, Eq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -33,19 +33,13 @@ impl Add for Point {
         }
     }
 }
-pub struct Player {
-    pub position: Point,
-    pub direction: Point,
-}
 
+#[derive(Hash, Clone, PartialEq, Eq)]
 pub struct GameState {
     width: i32,
     height: i32,
     cells: Vec<GameCell>,
     joan: Point,
-    steps: i16,
-    title: String,
-    author: String,
 }
 
 impl GameState {
@@ -55,9 +49,6 @@ impl GameState {
             height: height as i32,
             cells: vec![GameCell::Empty; (width * height) as usize],
             joan: Point { x: 0, y: 0 },
-            steps: 0,
-            title: String::from(""),
-            author: String::from(""),
         }
     }
 
@@ -67,26 +58,6 @@ impl GameState {
 
     pub fn height(&self) -> i32 {
         self.height
-    }
-
-    pub fn set_title(&mut self, title: &str) {
-        self.title = String::from(title);
-    }
-
-    pub fn title(&self) -> &str {
-        &self.title
-    }
-
-    pub fn set_author(&mut self, author: &str) {
-        self.author = String::from(author);
-    }
-
-    pub fn author(&self) -> &str {
-        &self.author
-    }
-
-    pub fn steps(&self) -> i16 {
-        self.steps
     }
 
     pub fn get_player_position(&self) -> Point {
@@ -119,18 +90,12 @@ impl GameState {
         }
     }
 
-    // next_position: The tile the player likes to move on
-    // true if not blocked by wall
-    pub fn is_blocked_by_a_wall(&self, pos: &Point) -> bool {
-        self.get_cell(&pos) == GameCell::Unmovable
-    }
-
-    fn free_cell(&self, pos: &Point) -> bool {
+    fn is_empty_or_sink(&self, pos: &Point) -> bool {
         let cell = self.get_cell(&pos);
         cell == GameCell::Empty || cell == GameCell::Sink
     }
 
-    fn box_cell(&self, pos: &Point) -> bool {
+    fn is_occupied_by_box(&self, pos: &Point) -> bool {
         let cell = self.get_cell(pos);
         cell == GameCell::Box || cell == GameCell::SinkWithBox
     }
@@ -138,7 +103,7 @@ impl GameState {
     // Return true iff box was successfully moved from old_pos to new_pos;
     // this includes a check whether old_pos really contained a box.
     fn try_move_box(&mut self, old_pos: &Point, new_pos: &Point) -> bool {
-        if !self.free_cell(&new_pos) | !self.box_cell(&old_pos) {
+        if !self.is_empty_or_sink(&new_pos) | !self.is_occupied_by_box(&old_pos) {
             return false;
         }
         let old_cell = self.get_cell(old_pos);
@@ -162,21 +127,19 @@ impl GameState {
 
     // Return true iff the player can move in the desired direction,
     // and modify the game state. Otherwise return false.
-    pub fn perform_move(&mut self, direction: &Point) -> bool {
+    pub fn try_perform_move(&mut self, direction: &Point) -> bool {
         if *direction == DIR_NO_MOVE {
             return false;
         }
         let desired_position = *direction + self.get_player_position();
-        if self.free_cell(&desired_position) {
+        if self.is_empty_or_sink(&desired_position) {
             self.set_player_position(&desired_position);
-            self.steps += 1;
             return true;
         } else {
             if !self.try_move_box(&desired_position, &(desired_position + *direction)) {
                 return false;
             }
             self.set_player_position(&desired_position);
-            self.steps += 1;
             return true;
         }
     }
@@ -184,5 +147,51 @@ impl GameState {
     // checks if the level is solved
     pub fn all_boxes_on_sinks(&self) -> bool {
         !self.cells.iter().any(|c| *c == GameCell::Box)
+    }
+}
+
+pub struct Game {
+    steps: i16,
+    title: String,
+    author: String,
+    state: GameState,
+}
+
+impl Game {
+    pub fn new(initial: GameState, title: String, author: String) -> Self {
+        Self {
+            steps: 0,
+            title,
+            author,
+            state: initial,
+        }
+    }
+
+    pub fn state(&self) -> &GameState {
+        &self.state
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn author(&self) -> &str {
+        &self.author
+    }
+
+    pub fn steps(&self) -> i16 {
+        self.steps
+    }
+
+    pub fn try_perform_move(&mut self, direction: &Point) -> bool {
+        if self.state.try_perform_move(direction) {
+            self.steps += 1;
+            return true;
+        }
+        false
+    }
+
+    pub fn is_game_won(&self) -> bool {
+        self.state.all_boxes_on_sinks()
     }
 }

@@ -1,7 +1,7 @@
 // kanjiban
 // (C) 2025 by JoAn
 // Parser for Sokoban levels
-use crate::game_state::{GameCell, GameState, Point};
+use crate::game_logic::{Game, GameCell, GameState, Point};
 
 use macroquad::prelude::*;
 
@@ -27,7 +27,7 @@ impl LevelLoader {
         !line.chars().any(|c| !ALLOWED_BOARD_CHARS.contains(c))
     }
 
-    pub async fn parse_level(&self) -> GameState {
+    pub async fn parse_level(&self) -> Game {
         // TODO: better error handling
         let contents = load_string(&self.level_path).await.unwrap();
 
@@ -52,7 +52,9 @@ impl LevelLoader {
         }
         assert!(height > 0);
         assert!(width > 0);
-        let mut result = GameState::new(width as u16, height as u16);
+        let mut game_state = GameState::new(width as u16, height as u16);
+        let mut title = "";
+        let mut author = "";
         // actually parse the lines of the game board and
         // the additional info
         while current_line_idx < lines.len() {
@@ -70,20 +72,20 @@ impl LevelLoader {
                     for c in line.chars() {
                         let pos = Point { x: x_pos, y: y_pos };
                         match c {
-                            '#' => result.set_cell(&pos, GameCell::Unmovable),
-                            'p' | '@' => result.set_player_position(&pos),
+                            '#' => game_state.set_cell(&pos, GameCell::Unmovable),
+                            'p' | '@' => game_state.set_player_position(&pos),
                             'P' | '+' => {
-                                result.set_player_position(&pos);
-                                result.set_cell(&pos, GameCell::Sink);
+                                game_state.set_player_position(&pos);
+                                game_state.set_cell(&pos, GameCell::Sink);
                             }
                             'b' | '$' => {
-                                result.set_cell(&pos, GameCell::Box);
+                                game_state.set_cell(&pos, GameCell::Box);
                             }
                             'B' | '*' => {
-                                result.set_cell(&pos, GameCell::SinkWithBox);
+                                game_state.set_cell(&pos, GameCell::SinkWithBox);
                             }
                             '.' => {
-                                result.set_cell(&pos, GameCell::Sink);
+                                game_state.set_cell(&pos, GameCell::Sink);
                             }
                             _ => {} // floor
                         }
@@ -97,14 +99,14 @@ impl LevelLoader {
                     let author_prefix = "Author: ";
 
                     if line.starts_with(title_prefix) {
-                        result.set_title(&line[title_prefix.len()..]);
+                        title = &line[title_prefix.len()..];
                     } else if line.starts_with(author_prefix) {
-                        result.set_author(&line[author_prefix.len()..]);
+                        author = &line[author_prefix.len()..];
                     }
                 }
             }
             current_line_idx += 1;
         }
-        result
+        Game::new(game_state, String::from(title), String::from(author))
     }
 }
