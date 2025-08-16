@@ -77,7 +77,9 @@ impl GameBoard {
 impl GameBoard {
     pub fn draw_board(self: &GameBoard, game_state: &GameState) {
         clear_background(LIGHTGRAY);
-
+        if game_state.width() == 0 || game_state.height() == 0 {
+            return;
+        }
         let sq_size =
             (self.max_x.min(self.max_y)) / (game_state.height().min(game_state.width()) as f32);
 
@@ -94,26 +96,18 @@ impl GameBoard {
         };
         for x in 0..game_state.width() {
             for y in 0..game_state.height() {
-                draw_point(
-                    &Point {
-                        x: x as i32,
-                        y: y as i32,
-                    },
-                    GameCell::Empty,
-                );
-            }
-        }
-        for s in &game_state.sinks {
-            draw_point(s, GameCell::Sink);
-        }
-        for b in &game_state.unmovable_blocks {
-            draw_point(b, GameCell::Unmovable);
-        }
-        for b in &game_state.movable_blocks {
-            if game_state.is_target(b) {
-                draw_point(b, GameCell::SinkWithBox);
-            } else {
-                draw_point(b, GameCell::Box);
+                let pos = Point {
+                    x: x as i32,
+                    y: y as i32,
+                };
+                draw_point(&pos, GameCell::Empty);
+                match game_state.get_cell(&pos) {
+                    GameCell::Box => draw_point(&pos, GameCell::Box),
+                    GameCell::Sink => draw_point(&pos, GameCell::Sink),
+                    GameCell::SinkWithBox => draw_point(&pos, GameCell::SinkWithBox),
+                    GameCell::Unmovable => draw_point(&pos, GameCell::Unmovable),
+                    _ => {}
+                }
             }
         }
         draw_point(&game_state.get_player_position(), GameCell::Player);

@@ -1,7 +1,8 @@
 // kanjiban
 // (C) 2025 by JoAn
 // Parser for Sokoban levels
-use crate::game_state::{GameState, Point};
+use crate::game_state::{GameCell, GameState, Point};
+
 use macroquad::prelude::*;
 
 const ALLOWED_BOARD_CHARS: &str = "#pPbB._ -.$*+@";
@@ -51,7 +52,7 @@ impl LevelLoader {
         }
         assert!(height > 0);
         assert!(width > 0);
-        let mut result = GameState::new(width, height);
+        let mut result = GameState::new(width as u16, height as u16);
         // actually parse the lines of the game board and
         // the additional info
         while current_line_idx < lines.len() {
@@ -69,21 +70,20 @@ impl LevelLoader {
                     for c in line.chars() {
                         let pos = Point { x: x_pos, y: y_pos };
                         match c {
-                            '#' => result.unmovable_blocks.push_back(pos),
-                            'p' | '@' => result.set_player_position(pos),
+                            '#' => result.set_cell(&pos, GameCell::Unmovable),
+                            'p' | '@' => result.set_player_position(&pos),
                             'P' | '+' => {
-                                result.set_player_position(pos);
-                                result.sinks.push_back(pos);
+                                result.set_player_position(&pos);
+                                result.set_cell(&pos, GameCell::Sink);
                             }
                             'b' | '$' => {
-                                result.movable_blocks.push_back(pos);
+                                result.set_cell(&pos, GameCell::Box);
                             }
                             'B' | '*' => {
-                                result.movable_blocks.push_back(pos);
-                                result.sinks.push_back(pos);
+                                result.set_cell(&pos, GameCell::SinkWithBox);
                             }
                             '.' => {
-                                result.sinks.push_back(pos);
+                                result.set_cell(&pos, GameCell::Sink);
                             }
                             _ => {} // floor
                         }

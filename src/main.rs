@@ -88,35 +88,24 @@ async fn main() {
     let mut last_update = get_time();
     let mut game_over = false; // TODO: move to state
     let mut game_state = load_level("0").await;
+    let mut desired_direction: Point = DIR_NO_MOVE;
 
     loop {
         if let Some(selected) = level_chooser.update() {
             game_state = load_level(LEVELS[selected]).await;
             game_over = false;
         }
-        let direction = input_control.get_direction();
-        if direction != DIR_NO_MOVE {
-            game_state.set_direction(direction);
+        let current_direction = input_control.get_direction();
+        if current_direction != DIR_NO_MOVE {
+            desired_direction = current_direction;
         }
         if get_time() - last_update > speed {
             last_update = get_time();
             // player likes to move on this tile:
-            let next_position: Point =
-                game_state.get_player_position() + game_state.get_direction();
-            let mut player_can_move = true;
-            if game_state.is_blocked_by_a_wall(&next_position) {
-                player_can_move = false;
-            }
-            if game_state.box_is_blocked(&next_position) {
-                player_can_move = false;
-            }
-            if player_can_move && next_position != game_state.get_player_position() {
-                game_state.set_player_position(next_position);
-                game_state.inc_steps();
+            if game_state.perform_move(&desired_direction) {
                 game_over = game_state.all_boxes_on_sinks();
             }
-
-            game_state.set_direction(DIR_NO_MOVE);
+            desired_direction = DIR_NO_MOVE;
         }
 
         if !game_over {
