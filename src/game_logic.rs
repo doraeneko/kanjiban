@@ -148,6 +148,29 @@ impl GameState {
     pub fn all_boxes_on_sinks(&self) -> bool {
         !self.cells.iter().any(|c| *c == GameCell::Box)
     }
+
+    pub fn print(&self) {
+        for y in 0..self.height() {
+            for x in 0..self.width() {
+                let pos = Point { x, y };
+                let output = match self.get_cell(&pos) {
+                    GameCell::Box => 'b',
+                    GameCell::Empty => '_',
+                    GameCell::Player => '@',
+                    GameCell::Sink => '.',
+                    GameCell::SinkWithBox => 'B',
+                    GameCell::Unmovable => '#',
+                    _ => '?',
+                };
+                if pos == self.get_player_position() {
+                    print!("P");
+                } else {
+                    print!("{output}");
+                }
+            }
+            println!();
+        }
+    }
 }
 
 pub struct Game {
